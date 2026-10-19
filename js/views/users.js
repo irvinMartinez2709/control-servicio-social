@@ -27,10 +27,10 @@
       fields: [
         { name: "displayName", label: "Nombre completo", icon: "fa-id-card", required: true, placeholder: "Ej. Marco Antonio Ruiz" },
         { name: "username", label: "Usuario", icon: "fa-user", required: true, placeholder: "marco_ruiz", hint: "4 a 24 caracteres (letras, números, . _ -)" },
-        { name: "email", label: "Correo electrónico", icon: "fa-envelope", type: "email", required: true, placeholder: "ejemplo@correo.com" },
-        { name: "phone", label: "Teléfono", icon: "fa-phone", type: "tel", required: true, placeholder: "Ej. 0414-1234567" },
-        { name: "cedula", label: "Cédula", icon: "fa-address-card", required: true, placeholder: "Ej. V-12345678" },
-        { name: "carrera", label: "Carrera", icon: "fa-graduation-cap", required: true, placeholder: "Ej. Ingeniería de Sistemas" },
+        { name: "email", label: "Correo electrónico", icon: "fa-envelope", type: "email", placeholder: "Ej. ana@correo.com", hint: "Opcional: texto libre." },
+        { name: "phone", label: "Teléfono", icon: "fa-phone", type: "tel", placeholder: "Ej. 0414-1234567", hint: "Opcional: texto libre." },
+        { name: "cedula", label: "Cédula", icon: "fa-address-card", placeholder: "Ej. V-12345678", hint: "Opcional: texto libre, sin formato exigido." },
+        { name: "carrera", label: "Carrera", icon: "fa-graduation-cap", placeholder: "Ej. Ingeniería de Sistemas", hint: "Opcional: texto libre." },
         {
           name: "role", label: "Rol inicial", icon: "fa-user-tag", type: "select", required: true, value: "visitante",
           options: [
@@ -49,8 +49,6 @@
         if (!/^[a-zA-Z0-9_.-]{4,24}$/.test(data.username)) throw new Error("Usuario inválido: 4 a 24 caracteres");
         if (SS.store.usernameTaken(data.username)) throw new Error("Ese nombre de usuario ya existe");
         if (data.password.length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres");
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email || "")) throw new Error("Escribe un correo electrónico válido");
-        if (!/^[+()\d\s-]{8,15}$/.test(data.phone || "")) throw new Error("Escribe un teléfono válido (8 a 15 dígitos)");
         if (!SS.auth.can(actor, "users:create")) throw new Error("No tienes permiso para crear usuarios");
         if (data.role === "admin" && !SS.auth.can(actor, "users:promote-admin")) throw new Error("No puedes crear Admins");
         if (data.role === "superadmin" && !SS.auth.isSuper(actor)) throw new Error("Solo el Líder Supremo otorga ese rol");
@@ -63,7 +61,7 @@
           group: data.group,
           email: String(data.email || "").trim(),
           phone: String(data.phone || "").trim(),
-          cedula: String(data.cedula || "").trim().toUpperCase().replace(/\s/g, ""),
+          cedula: String(data.cedula || "").trim(),
           carrera: String(data.carrera || "").trim(),
           passwordHash: await SS.crypto.hashPassword(data.password),
           twoFactor: { method: null, pinHash: null, secret: null, enabled: false },
@@ -112,10 +110,10 @@
       fields: [
         ...(fullEdit ? [
           { name: "displayName", label: "Nombre completo", icon: "fa-id-card", required: true, value: target.displayName },
-          { name: "email", label: "Correo electrónico", icon: "fa-envelope", type: "email", value: target.email || "", required: true },
-          { name: "phone", label: "Teléfono", icon: "fa-phone", type: "tel", value: target.phone || "", required: true },
-          { name: "cedula", label: "Cédula", icon: "fa-address-card", value: target.cedula || "", required: true },
-          { name: "carrera", label: "Carrera", icon: "fa-graduation-cap", value: target.carrera || "", required: true }
+          { name: "email", label: "Correo electrónico", icon: "fa-envelope", type: "email", value: target.email || "", hint: "Texto libre." },
+          { name: "phone", label: "Teléfono", icon: "fa-phone", type: "tel", value: target.phone || "", hint: "Texto libre." },
+          { name: "cedula", label: "Cédula", icon: "fa-address-card", value: target.cedula || "", hint: "Texto libre." },
+          { name: "carrera", label: "Carrera", icon: "fa-graduation-cap", value: target.carrera || "", hint: "Texto libre." }
         ] : []),
         {
           name: "group", label: "Grupo", icon: "fa-people-group", type: "select", required: true, value: target.group,
@@ -143,10 +141,8 @@
           patch.displayName = data.displayName;
           patch.email = String(data.email || "").trim();
           patch.phone = String(data.phone || "").trim();
-          patch.cedula = String(data.cedula || "").trim().toUpperCase().replace(/\s/g, "");
+          patch.cedula = String(data.cedula || "").trim();
           patch.carrera = String(data.carrera || "").trim();
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(patch.email)) throw new Error("Escribe un correo electrónico válido");
-          if (!/^[+()\d\s-]{8,15}$/.test(patch.phone)) throw new Error("Escribe un teléfono válido");
           if (data.displayName !== target.displayName) changes.push(`nombre "${target.displayName}" → "${data.displayName}"`);
         }
         if (fullEdit && data.role && data.role !== target.role) {

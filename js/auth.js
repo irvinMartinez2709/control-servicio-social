@@ -75,14 +75,11 @@
     if (String(data.password || "").length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres");
     if (data.password !== data.confirm) throw new Error("Las contraseñas no coinciden");
 
+    // Correo, teléfono, cédula y carrera: texto libre (sin formato exigido)
     const email = String(data.email || "").trim();
     const phone = String(data.phone || "").trim();
     const cedula = String(data.cedula || "").trim();
     const carrera = String(data.carrera || "").trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) throw new Error("Escribe un correo electrónico válido");
-    if (!/^[+()\d\s-]{8,15}$/.test(phone)) throw new Error("Escribe un teléfono válido (8 a 15 dígitos)");
-    if (!/^[V,E,G,J]-?\d{5,12}$/.test(cedula.toUpperCase().replace(/\s/g, ""))) throw new Error("Escribe una cédula válida (ej. V-12345678)");
-    if (carrera.length < 3) throw new Error("Escribe tu carrera");
 
     const groupId = String(data.group || "").trim();
     const group = SS.store.groupById(groupId) ? groupId : SS.store.defaultGroupId();
@@ -95,7 +92,7 @@
       group,
       email,
       phone,
-      cedula: cedula.toUpperCase().replace(/\s/g, ""),
+      cedula,
       carrera,
       passwordHash: await C.hashPassword(data.password),
       twoFactor: { method: null, pinHash: null, secret: null, enabled: false },

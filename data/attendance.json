@@ -1,18 +1,43 @@
 {
   "_info": {
     "app": "Control Servicio Social",
-    "description": "Registros de asistencia de Cuadro 3 y Cuadro 6: horas, estados (Pendiente/Aprobado/Rechazado) y referencias a bitácoras.",
+    "description": "Registros de asistencia de Cuadro 3 y Cuadro 6: horas, estados (Pendiente/Aprobado/Rechazado) y referencias a bitácoras. Incluye registros de ejemplo iniciales para el resumen público.",
     "version": 1,
     "campos": {
+      "id": "identificador del registro",
       "userId": "identificador del usuario",
-      "date": "fecha de la jornada (YYYY-MM-DD)",
+      "username": "usuario de la persona",
+      "displayName": "nombre de la persona",
+      "date": "fecha de la jornada (YYYY-MM-DD); se aceptan fechas pasadas y futuras",
       "group": "cuadro3 | cuadro6",
       "entry": "hora de llegada (HH:MM)",
       "exit": "hora de salida (HH:MM)",
       "minutes": "minutos trabajados (enteros; 60 = 1 hora)",
-      "status": "pendiente | aprobado | rechazado",
-      "detail": "actividad o incidencia del turno"
+      "status": "pendiente | aprobado | revisado",
+      "detail": "actividad o incidencia del turno",
+      "createdAt": "fecha de creación (epoch ms)",
+      "createdBy": "usuario que lo registró",
+      "reviewedBy": "usuario que lo revisó",
+      "reviewedAt": "fecha de revisión (epoch ms)"
     }
   },
-  "items": []
+  "items": [
+    { "id": "rec_seed01", "userId": "usr_demo1", "username": "carla_mendoza", "displayName": "Carla Mendoza", "date": "2026-10-01", "group": "cuadro3", "entry": "08:00", "exit": "11:00", "minutes": 180, "status": "aprobado", "detail": "Apoyo en archivo de documentos", "createdAt": 1790852400000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1790866800000 },
+    { "id": "rec_seed02", "userId": "usr_demo3", "username": "luisa_fernandez", "displayName": "Luisa Fernández", "date": "2026-10-01", "group": "cuadro6", "entry": "14:00", "exit": "17:00", "minutes": 180, "status": "aprobado", "detail": "Taller de apoyo escolar", "createdAt": 1790856000000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1790870400000 },
+    { "id": "rec_seed03", "userId": "usr_demo2", "username": "jose_rivas", "displayName": "José Rivas", "date": "2026-10-02", "group": "cuadro3", "entry": "09:00", "exit": "12:00", "minutes": 180, "status": "aprobado", "detail": "Brigada de mantenimiento", "createdAt": 1790938800000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1790953200000 },
+    { "id": "rec_seed04", "userId": "usr_demo4", "username": "pedro_salazar", "displayName": "Pedro Salazar", "date": "2026-10-05", "group": "cuadro6", "entry": "07:30", "exit": "11:30", "minutes": 240, "status": "aprobado", "detail": "Apoyo en cocina comunitaria", "createdAt": 1791198000000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1791212400000 },
+    { "id": "rec_seed05", "userId": "usr_demo1", "username": "carla_mendoza", "displayName": "Carla Mendoza", "date": "2026-10-06", "group": "cuadro3", "entry": "08:00", "exit": "12:00", "minutes": 240, "status": "aprobado", "detail": "Recepción y registro de correspondencia", "createdAt": 1791284400000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1791298800000 },
+    { "id": "rec_seed06", "userId": "usr_demo2", "username": "jose_rivas", "displayName": "José Rivas", "date": "2026-10-07", "group": "cuadro3", "entry": "09:00", "exit": "13:00", "minutes": 240, "status": "aprobado", "detail": "Apoyo en biblioteca", "createdAt": 1791370800000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1791385200000 },
+    { "id": "rec_seed07", "userId": "usr_demo3", "username": "luisa_fernandez", "displayName": "Luisa Fernández", "date": "2026-10-08", "group": "cuadro6", "entry": "14:00", "exit": "18:00", "minutes": 240, "status": "aprobado", "detail": "Acompañamiento de grupo", "createdAt": 1791457200000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1791471600000 },
+    { "id": "rec_seed08", "userId": "usr_demo4", "username": "pedro_salazar", "displayName": "Pedro Salazar", "date": "2026-10-12", "group": "cuadro6", "entry": "07:30", "exit": "10:00", "minutes": 150, "status": "aprobado", "detail": "Distribución de víveres", "createdAt": 1791802800000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1791817200000 },
+    { "id": "rec_seed09", "userId": "usr_demo1", "username": "carla_mendoza", "displayName": "Carla Mendoza", "date": "2026-10-13", "group": "cuadro3", "entry": "08:30", "exit": "11:30", "minutes": 180, "status": "aprobado", "detail": "Limpieza y organización del almacén", "createdAt": 1791889200000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1791903600000 },
+    { "id": "rec_seed10", "userId": "usr_demo2", "username": "jose_rivas", "displayName": "José Rivas", "date": "2026-10-14", "group": "cuadro3", "entry": "09:00", "exit": "11:00", "minutes": 120, "status": "aprobado", "detail": "Revisión de inventario", "createdAt": 1791975600000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1791990000000 },
+    { "id": "rec_seed11", "userId": "usr_demo3", "username": "luisa_fernandez", "displayName": "Luisa Fernández", "date": "2026-10-15", "group": "cuadro6", "entry": "14:00", "exit": "16:30", "minutes": 150, "status": "aprobado", "detail": "Archivo de actas", "createdAt": 1792062000000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1792076400000 },
+    { "id": "rec_seed12", "userId": "usr_demo4", "username": "pedro_salazar", "displayName": "Pedro Salazar", "date": "2026-10-16", "group": "cuadro6", "entry": "07:30", "exit": "11:00", "minutes": 210, "status": "aprobado", "detail": "Mantenimiento de cancha", "createdAt": 1792148400000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1792162800000 },
+    { "id": "rec_seed13", "userId": "usr_demo1", "username": "carla_mendoza", "displayName": "Carla Mendoza", "date": "2026-10-19", "group": "cuadro3", "entry": "08:00", "exit": "10:30", "minutes": 150, "status": "aprobado", "detail": "Apoyo en eventos institucionales", "createdAt": 1792407600000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1792422000000 },
+    { "id": "rec_seed14", "userId": "usr_demo2", "username": "jose_rivas", "displayName": "José Rivas", "date": "2026-10-19", "group": "cuadro3", "entry": "09:00", "exit": "12:00", "minutes": 180, "status": "aprobado", "detail": "Asistencia en secretaría", "createdAt": 1792411200000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1792425600000 },
+    { "id": "rec_seed15", "userId": "usr_demo3", "username": "luisa_fernandez", "displayName": "Luisa Fernández", "date": "2026-10-19", "group": "cuadro6", "entry": "14:00", "exit": "17:00", "minutes": 180, "status": "aprobado", "detail": "Jornada de orientación", "createdAt": 1792429200000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1792443600000 },
+    { "id": "rec_seed16", "userId": "usr_demo4", "username": "pedro_salazar", "displayName": "Pedro Salazar", "date": "2026-10-19", "group": "cuadro6", "entry": "08:00", "exit": "11:00", "minutes": 180, "status": "aprobado", "detail": "Revisión de puestos de servicio", "createdAt": 1792404000000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1792418400000 },
+    { "id": "rec_seed17", "userId": "usr_demo4", "username": "pedro_salazar", "displayName": "Pedro Salazar", "date": "2026-09-29", "group": "cuadro6", "entry": "07:30", "exit": "10:30", "minutes": 180, "status": "aprobado", "detail": "Aseo de áreas comunes", "createdAt": 1790683200000, "createdBy": "sistema", "reviewedBy": "irvin_martinez", "reviewedAt": 1790697600000 }
+  ]
 }

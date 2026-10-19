@@ -5,6 +5,7 @@ con grupos dinámicos (Cuadro 3, Cuadro 6 y los que cree el Líder Supremo), bit
 y evidencia fotográfica.
 
 Diseño *flat* moderno, modo claro/oscuro, iconografía **FontAwesome 6** (sin emojis nativos),
+**portada pública con resumen de horas y asistencias** (visible sin sesión, con calendario),
 **cuenta única con dos modos de ingreso** (Visitante / Administración), autenticación por roles con
 **2FA** (PIN maestro o TOTP), **registro de auditoría completo** y persistencia en `LocalStorage`
 con utilidades de exportación/importación de los JSON del repositorio.
@@ -36,6 +37,7 @@ Labor social/
 │   ├── auth.js                 # Login dual, registro, 2FA y matriz de permisos
 │   ├── app.js                  # Router con Auth Guard + arranque + service worker
 │   └── views/
+│       ├── public.js            # Portada pública: resumen + calendario (sin sesión)
 │       ├── login.js            # Login (Visitante/Admin), Registro, 2FA
 │       ├── dashboard.js        # Resumen (meta 60 hrs, desglose, estados)
 │       ├── attendance.js       # Asistencia (jornadas, solicitudes, registro directo)
@@ -76,6 +78,22 @@ Labor social/
 > código TOTP con Google Authenticator / Authy). Las contraseñas se guardan como
 > `sha256$<sal>$<hash>`; nunca en texto plano.
 
+### Portada pública (resumen sin sesión)
+
+La página inicial (`#/`) ya **no es el login**: es un **resumen público** pensado para que
+cualquiera consulte la información sin iniciar sesión.
+
+- **KPIs** con horas totales aprobadas, participantes, asistencias y solicitudes por revisar.
+- **Horas totales de cada persona** con barra de progreso hacia la meta (60 hrs).
+- **Calendario mensual** navegable: cada día con asistencias muestra su conteo; al seleccionar
+  un día se despliega el detalle (persona, horario, horas y estado).
+- **Todas las asistencias** en una lista completa (fecha, persona, grupo, llegada/salida,
+  horas, estado y detalle).
+- Botón **Iniciar sesión** (o *Mi panel* si ya hay sesión) y conmutador de tema claro/oscuro.
+
+Registrar asistencias sigue exigiendo sesión: desde el login puedes volver al resumen con
+el enlace *"Ver el resumen público sin iniciar sesión"*.
+
 ### Modos de ingreso (cuenta única, dos vistas)
 
 El login pide **solo usuario y contraseña**. El modo NO se elige antes de entrar:
@@ -98,7 +116,9 @@ El login pide **solo usuario y contraseña**. El modo NO se elige antes de entra
 ### Registro y grupos
 
 - El registro pide **correo, teléfono, cédula y carrera**, además de nombre, usuario,
-  contraseña y **grupo al que pertenece**.
+  contraseña y **grupo al que pertenece**. Esos cuatro datos son **texto libre**:
+  no se exige ningún formato y pueden dejarse vacíos (también al crear o editar
+  usuarios desde *Usuarios* y desde *Ajustes → Editar mis datos*).
 - Los visitantes solo ven la información (horas, jornadas, bitácoras y fotos) de **su grupo**.
 - **Solo el Líder Supremo crea grupos** (sección *Grupos*); los grupos no pueden eliminarse
   si tienen usuarios, registros, jornadas, fotos o bitácoras asociadas.
@@ -173,10 +193,13 @@ La aplicación corre sobre `LocalStorage` (capa de ejecución). Para versionar l
 ## Funciones principales
 
 - **Splash** animado con el logo al cargar y al validar sesión.
-- **Auth Guard**: sin sesión no se accede a ninguna sección (redirige a Login).
+- **Auth Guard**: sin sesión solo se ven la portada pública, Login y Registro (las demás
+  secciones redirigen a Login).
 - **Visibilidad de contraseña** (ojo FontAwesome) en todos los formularios.
 - **2FA obligatorio** para Admin y Super Admin (PIN o TOTP con QR).
 - **Asistencia** con jornadas por fecha, aprobación/rechazo/corrección y registro directo.
+  **Se pueden registrar fechas pasadas** (en la solicitud y en el registro directo): el
+  Admin revisa y aprueba o rechaza siempre.
 - **Horas en formato estricto** (`10 hrs 48 mins`), meta de **60 hrs** con barra de progreso.
 - **Bitácora** por jornada y **galería** de fotos vinculadas a fechas.
 - **Resumen**: avance, desglose Cuadro 3 / Cuadro 6, estados de solicitudes y accesos directos.

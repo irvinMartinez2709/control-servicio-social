@@ -106,6 +106,9 @@
 }
 .auth__switch button:hover { text-decoration: underline; }
 
+.auth__switch--sub { border-top: 0; padding-top: 2px; font-size: .8rem; }
+.auth__switch--sub button i { margin-right: 5px; }
+
 .auth__notice {
   display: flex;
   gap: 10px;
@@ -585,6 +588,168 @@
   border-radius: var(--r-pill);
 }
 .mode-choice__tag i { margin-right: 4px; }
+
+/* ============================================================
+   Portada pública (resumen sin sesión) + calendario
+   ============================================================ */
+.pub {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 clamp(16px, 4vw, 48px) clamp(24px, 4vw, 48px);
+  background:
+    radial-gradient(1200px 480px at 80% -10%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 60%),
+    var(--bg, var(--surface-2, var(--surface)));
+}
+.pub__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: color-mix(in srgb, var(--bg, var(--surface)) 86%, transparent);
+  backdrop-filter: blur(8px);
+}
+.pub__logo { height: 44px; width: auto; display: block; }
+.pub__bar-actions { display: flex; align-items: center; gap: 8px; }
+
+.pub__hero { max-width: 780px; padding: 22px 0 18px; }
+.pub__hero h1 { margin: 8px 0 6px; font-size: clamp(1.5rem, 3vw, 2.1rem); }
+.pub__hero p { color: var(--muted); font-size: .95rem; }
+
+.pub__kpis { margin-bottom: var(--sp-4); }
+
+.pub__grid {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: var(--sp-4);
+  align-items: start;
+  margin-bottom: var(--sp-4);
+}
+.pub__card { padding: clamp(14px, 2vw, 20px); }
+.pub__card .card__head { margin-bottom: var(--sp-3); }
+
+/* Horas por persona */
+.pub-hours { display: grid; gap: 10px; }
+.pub-hours__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.pub-hours__who { min-width: 0; flex: 0 1 auto; display: grid; gap: 2px; }
+.pub-hours__who strong { font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pub-hours__who span { font-size: .74rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pub-hours__bar { flex: 1 1 90px; min-width: 70px; height: 8px; }
+.pub-hours__min { margin-left: auto; font-size: .86rem; white-space: nowrap; }
+
+/* Calendario */
+.cal {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px;
+  background: var(--surface-2, var(--surface));
+}
+.cal__nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.cal__title { font-size: .92rem; letter-spacing: .02em; }
+.cal__dow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+  text-align: center;
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal__cell { aspect-ratio: 1 / 1; }
+.cal__day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+  transition: border-color .15s var(--ease), background .15s var(--ease);
+}
+.cal__day:hover { border-color: var(--primary); }
+.cal__day.has-rec { font-weight: 700; }
+.cal__day.is-today { border-color: color-mix(in srgb, var(--primary) 55%, transparent); }
+.cal__day.is-selected { background: var(--primary); border-color: var(--primary); color: #fff; }
+.cal__day.is-selected .cal__cnt { background: rgba(255, 255, 255, .25); color: #fff; }
+.cal__cnt {
+  font-size: .62rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  color: var(--primary);
+}
+.cal__cell--empty { visibility: hidden; }
+
+/* Detalle del día seleccionado */
+.cal-day { margin-top: 12px; display: grid; gap: 8px; }
+.cal-day__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .84rem;
+  color: var(--muted);
+}
+.cal-day__head strong { color: var(--text); font-size: .88rem; }
+.cal-day__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  flex-wrap: wrap;
+}
+.cal-day__who { min-width: 0; flex: 1 1 auto; display: grid; gap: 2px; }
+.cal-day__who strong { font-size: .84rem; }
+.cal-day__who span { font-size: .72rem; color: var(--muted); }
+.cal-day__min { font-size: .8rem; white-space: nowrap; }
+
+/* Pie de la portada */
+.pub__foot {
+  margin-top: var(--sp-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: .8rem;
+}
+.pub__foot i { margin-right: 6px; }
+
+@media (max-width: 940px) {
+  .pub__grid { grid-template-columns: 1fr; }
+  .pub__bar { position: static; }
+}
+@media (max-width: 560px) {
+  .pub-hours__bar { display: none; }        /* en móvil prioriza nombre y horas */
+  .pub-hours__row { gap: 8px; padding: 8px 10px; }
+  .cal-day__row { gap: 6px; }
+}
 
 /* ------------------------- Badge genérico de grupo ------------------------- */
 .badge--group {

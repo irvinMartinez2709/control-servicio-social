@@ -33,6 +33,18 @@
     const view = $("#view");
     const shell = $("#app");
 
+    // Portada pública: resumen de horas/asistencias y calendario sin sesión.
+    // Siempre a pantalla completa, con o sin sesión iniciada.
+    if (name === "resumen-publico" || (!authed && !name)) {
+      if (name !== "resumen-publico") history.replaceState(null, "", "#/resumen-publico");
+      shell.classList.add("app--auth");
+      renderView("resumen-publico", view);
+      markActive("resumen-publico");
+      closeDrawer();
+      document.title = "Resumen público · Control Servicio Social";
+      return;
+    }
+
     // Sin sesión: sólo login/registro; todo lo demás redirige al login
     if (!authed) {
       shell.classList.add("app--auth");

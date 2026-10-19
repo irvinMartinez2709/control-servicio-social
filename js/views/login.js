@@ -170,6 +170,9 @@
             <div class="auth__switch">
               ¿Aún no tienes cuenta? <button type="button" data-go="register">Crear cuenta</button>
             </div>
+            <div class="auth__switch auth__switch--sub">
+              <button type="button" data-go="public"><i class="fa-solid fa-earth-americas"></i> Ver el resumen público sin iniciar sesión</button>
+            </div>
           </div>
         </section>
       </div>`;
@@ -177,6 +180,7 @@
     bindPasswordToggles(root);
 
     root.querySelector("[data-go='register']").addEventListener("click", () => { location.hash = "#/registro"; });
+    root.querySelector("[data-go='public']").addEventListener("click", () => { location.hash = "#/resumen-publico"; });
 
     const form = root.querySelector("#form-login");
     form.addEventListener("submit", async (e) => {
@@ -395,10 +399,10 @@
             <form id="form-register" class="auth__form" novalidate>
               ${field({ id: "displayName", label: "Nombre completo", icon: "fa-id-card", placeholder: "Ej. Ana López Ruiz", autocomplete: "name", required: true })}
               ${field({ id: "username", label: "Usuario", icon: "fa-user", placeholder: "ana_lopez", autocomplete: "username", required: true, hint: "4 a 24 caracteres: letras, números, punto, guion bajo o guion." })}
-              ${field({ id: "email", label: "Correo electrónico", icon: "fa-envelope", type: "email", placeholder: "ejemplo@correo.com", autocomplete: "email", required: true })}
-              ${field({ id: "phone", label: "Teléfono", icon: "fa-phone", type: "tel", placeholder: "Ej. 0414-1234567", autocomplete: "tel", required: true })}
-              ${field({ id: "cedula", label: "Cédula", icon: "fa-address-card", placeholder: "Ej. V-12345678", required: true, hint: "Con letra V, E o G." })}
-              ${field({ id: "carrera", label: "Carrera", icon: "fa-graduation-cap", placeholder: "Ej. Ingeniería de Sistemas", required: true })}
+              ${field({ id: "email", label: "Correo electrónico", icon: "fa-envelope", type: "email", placeholder: "Ej. ana@correo.com", autocomplete: "email", hint: "Opcional: texto libre." })}
+              ${field({ id: "phone", label: "Teléfono", icon: "fa-phone", type: "tel", placeholder: "Ej. 0414-1234567", autocomplete: "tel", hint: "Opcional: texto libre." })}
+              ${field({ id: "cedula", label: "Cédula", icon: "fa-address-card", placeholder: "Ej. V-12345678", hint: "Opcional: texto libre, sin formato exigido." })}
+              ${field({ id: "carrera", label: "Carrera", icon: "fa-graduation-cap", placeholder: "Ej. Ingeniería de Sistemas", hint: "Opcional: texto libre." })}
 
               <div class="field">
                 <label class="field__label" for="group"><i class="fa-solid fa-people-group"></i>Grupo al que perteneces *</label>
@@ -442,10 +446,6 @@
       };
       if (!data.displayName) return fail(form.displayName, "Escribe tu nombre completo");
       if (!data.username) return fail(form.username, "Escribe un usuario");
-      if (!data.email) return fail(form.email, "Escribe tu correo electrónico");
-      if (!data.phone) return fail(form.phone, "Escribe tu teléfono");
-      if (!data.cedula) return fail(form.cedula, "Escribe tu cédula");
-      if (!data.carrera) return fail(form.carrera, "Escribe tu carrera");
       if (!data.password) return fail(form.password, "Escribe una contraseña");
       if (data.password !== data.confirm) return fail(form.confirm, "Las contraseñas no coinciden");
 
@@ -461,10 +461,6 @@
       } catch (err) {
         UI.toast(err.message, "error");
         if (/usuario/i.test(err.message)) fail(form.username, err.message);
-        else if (/correo/i.test(err.message)) fail(form.email, err.message);
-        else if (/teléfono/i.test(err.message)) fail(form.phone, err.message);
-        else if (/cédula/i.test(err.message)) fail(form.cedula, err.message);
-        else if (/carrera/i.test(err.message)) fail(form.carrera, err.message);
         else if (/contrase/i.test(err.message)) fail(form.password, err.message);
         btn.removeAttribute("aria-disabled");
         btn.innerHTML = `<i class="fa-solid fa-user-check"></i> Crear cuenta`;

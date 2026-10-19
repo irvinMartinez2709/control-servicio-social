@@ -5,7 +5,7 @@
      - Navegaciones y data/*.json: red primero, caché como respaldo.
    ============================================================= */
 
-const CACHE = "control-servicio-social-v4";
+const CACHE = "control-servicio-social-v5";
 
 const PRECACHE = [
   "./",
@@ -23,6 +23,7 @@ const PRECACHE = [
   "js/ui.js",
   "js/auth.js",
   "js/app.js",
+  "js/views/public.js",
   "js/views/login.js",
   "js/views/dashboard.js",
   "js/views/attendance.js",

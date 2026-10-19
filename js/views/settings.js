@@ -40,20 +40,19 @@
       submitLabel: "Guardar datos",
       fields: [
         { name: "displayName", label: "Nombre completo", icon: "fa-id-card", required: true, value: user.displayName },
-        { name: "email", label: "Correo electrónico", icon: "fa-envelope", type: "email", required: true, value: user.email || "" },
-        { name: "phone", label: "Teléfono", icon: "fa-phone", type: "tel", required: true, value: user.phone || "" },
-        { name: "cedula", label: "Cédula", icon: "fa-address-card", required: true, value: user.cedula || "" },
-        { name: "carrera", label: "Carrera", icon: "fa-graduation-cap", required: true, value: user.carrera || "" }
+        { name: "email", label: "Correo electrónico", icon: "fa-envelope", type: "email", value: user.email || "", hint: "Texto libre." },
+        { name: "phone", label: "Teléfono", icon: "fa-phone", type: "tel", value: user.phone || "", hint: "Texto libre." },
+        { name: "cedula", label: "Cédula", icon: "fa-address-card", value: user.cedula || "", hint: "Texto libre." },
+        { name: "carrera", label: "Carrera", icon: "fa-graduation-cap", value: user.carrera || "", hint: "Texto libre." }
       ],
       onSubmit: (data) => {
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email || "")) throw new Error("Escribe un correo electrónico válido");
-        if (!/^[+()\d\s-]{8,15}$/.test(data.phone || "")) throw new Error("Escribe un teléfono válido (8 a 15 dígitos)");
-        const cedula = String(data.cedula || "").trim().toUpperCase().replace(/\s/g, "");
-        if (!cedula) throw new Error("Escribe tu cédula");
+        // Texto libre: sin formato exigido para correo, teléfono, cédula ni carrera
+        const cedula = String(data.cedula || "").trim();
         SS.store.updateUser(user.id, {
-          displayName: data.displayName, email: data.email, phone: data.phone, cedula, carrera: data.carrera
+          displayName: data.displayName, email: String(data.email || "").trim(),
+          phone: String(data.phone || "").trim(), cedula, carrera: String(data.carrera || "").trim()
         });
-        SS.audit.log("cuentas", "Editó sus datos de contacto", `@${user.username} · ${cedula}`);
+        SS.audit.log("cuentas", "Editó sus datos de contacto", `@${user.username}${cedula ? " · " + cedula : ""}`);
         UI.toast("Datos actualizados", "success");
         render(U.$("#view"));
         SS.app.refreshChrome();

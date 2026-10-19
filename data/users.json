@@ -1,7 +1,7 @@
 {
   "_info": {
     "app": "Control Servicio Social",
-    "description": "Usuarios, roles, hashes de contraseñas (SHA-256 con sal), datos de contacto y configuración 2FA. Los administradores pueden definir además un usuario/contraseña propios de su versión visitante (visitorUsername + visitorPasswordHash) para entrar directo como visitante.",
+    "description": "Usuarios, roles, hashes de contraseñas (SHA-256 con sal), datos de contacto y configuración 2FA. Los administradores pueden definir además un usuario/contraseña propios de su versión visitante (visitorUsername + visitorPasswordHash) para entrar directo como visitante. Correo, teléfono, cédula y carrera son texto libre (sin formato exigido). Incluye participantes de ejemplo iniciales.",
     "version": 2,
     "hint": "Las contraseñas nunca se guardan en texto plano. Exporta este archivo desde Ajustes > Datos y respaldos > Descargar archivos JSON del repo."
   },
@@ -25,6 +25,70 @@
       },
       "mustChangePassword": false,
       "createdAt": 1760736000000,
+      "createdBy": "sistema"
+    },
+    {
+      "id": "usr_demo1",
+      "username": "carla_mendoza",
+      "displayName": "Carla Mendoza",
+      "role": "visitante",
+      "group": "cuadro3",
+      "email": "carla.mendoza@correo.com",
+      "phone": "0412-5550101",
+      "cedula": "V-25123456",
+      "carrera": "Educación",
+      "passwordHash": "sha256$a1b2c3d4e5f60718$7a3ae4e89e05db46a84f27f631f5adf7236a28dba37f7c9750b2505849d1bb5f",
+      "twoFactor": { "method": null, "pinHash": null, "secret": null, "enabled": false },
+      "mustChangePassword": false,
+      "createdAt": 1790294400000,
+      "createdBy": "sistema"
+    },
+    {
+      "id": "usr_demo2",
+      "username": "jose_rivas",
+      "displayName": "José Rivas",
+      "role": "visitante",
+      "group": "cuadro3",
+      "email": "",
+      "phone": "0414 771 22 05 ext. 2",
+      "cedula": "sin cédula",
+      "carrera": "Ingeniería de Sistemas (nocturna)",
+      "passwordHash": "sha256$a1b2c3d4e5f60718$7a3ae4e89e05db46a84f27f631f5adf7236a28dba37f7c9750b2505849d1bb5f",
+      "twoFactor": { "method": null, "pinHash": null, "secret": null, "enabled": false },
+      "mustChangePassword": false,
+      "createdAt": 1790294400000,
+      "createdBy": "sistema"
+    },
+    {
+      "id": "usr_demo3",
+      "username": "luisa_fernandez",
+      "displayName": "Luisa Fernández",
+      "role": "visitante",
+      "group": "cuadro6",
+      "email": "luisa.fernandez@ejemplo.org",
+      "phone": "+58 0416-1234567",
+      "cedula": "E-19876543",
+      "carrera": "Trabajo Social",
+      "passwordHash": "sha256$a1b2c3d4e5f60718$7a3ae4e89e05db46a84f27f631f5adf7236a28dba37f7c9750b2505849d1bb5f",
+      "twoFactor": { "method": null, "pinHash": null, "secret": null, "enabled": false },
+      "mustChangePassword": false,
+      "createdAt": 1790294400000,
+      "createdBy": "sistema"
+    },
+    {
+      "id": "usr_demo4",
+      "username": "pedro_salazar",
+      "displayName": "Pedro Salazar",
+      "role": "visitante",
+      "group": "cuadro6",
+      "email": "pedro salazar correo personal",
+      "phone": "0424-99887766",
+      "cedula": "V-30112233",
+      "carrera": "Ingeniería Industrial",
+      "passwordHash": "sha256$a1b2c3d4e5f60718$7a3ae4e89e05db46a84f27f631f5adf7236a28dba37f7c9750b2505849d1bb5f",
+      "twoFactor": { "method": null, "pinHash": null, "secret": null, "enabled": false },
+      "mustChangePassword": false,
+      "createdAt": 1790294400000,
       "createdBy": "sistema"
     }
   ]

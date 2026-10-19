@@ -45,8 +45,11 @@
   /* ------------------------- Formulario: Solicitud de visitante ------------------------- */
   async function requestAttendance(user) {
     const myGroup = user.group || SS.store.defaultGroupId();
+    // Se muestran TODAS las jornadas del grupo, incluidas las pasadas:
+    // cualquiera puede registrar asistencia en una fecha anterior y el
+    // Admin se encarga de revisarla (aprobar o rechazar).
     const jornadas = SS.store.state.jornadas
-      .filter((j) => j.group === myGroup && (!j.date || j.date >= U.todayISO()))
+      .filter((j) => j.group === myGroup)
       .sort((a, b) => (a.date > b.date ? -1 : 1));
 
     const res = await UI.formModal({
@@ -57,12 +60,12 @@
       fields: [
         {
           name: "date", label: "Fecha", icon: "fa-calendar-day", type: "select",
-          placeholder: jornadas.length ? "Selecciona una fecha habilitada" : "No hay jornadas abiertas",
+          placeholder: jornadas.length ? "Selecciona una fecha de tu grupo" : "No hay jornadas abiertas",
           value: jornadas.length ? jornadas[0].date : "",
           options: jornadas.map((j) => ({ value: j.date, label: `${U.fmtDate(j.date)} · ${UI.groupLabel(j.group)}` })),
-          hint: jornadas.length ? "Fechas habilitadas para tu grupo." : "Escribe la fecha en el campo siguiente."
+          hint: jornadas.length ? "Todas las jornadas de tu grupo, pasadas incluidas." : "Escribe la fecha en el campo siguiente."
         },
-        { name: "dateCustom", label: "O escribe otra fecha", icon: "fa-calendar", type: "date", hint: "Se usa solo si no eliges una fecha habilitada." },
+        { name: "dateCustom", label: "O escribe otra fecha", icon: "fa-calendar", type: "date", hint: "Acepta fechas pasadas o futuras; el Admin revisa todo." },
         { name: "group", label: "Grupo", icon: "fa-people-group", type: "hidden", value: myGroup, hint: "" },
         { name: "entry", label: "Hora de llegada", icon: "fa-arrow-right-to-bracket", type: "time", required: true, value: U.nowHM() },
         { name: "exit", label: "Hora de salida", icon: "fa-arrow-right-from-bracket", type: "time", required: true },
