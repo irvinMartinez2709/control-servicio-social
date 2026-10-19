@@ -9,5 +9,16 @@
       "updatedBy": "usuario que redactó o actualizó la entrada"
     }
   },
-  "items": []
+  "items": [
+    {
+      "id": "bit_mvfsbiwc_f05i9z",
+      "date": "2026-10-19",
+      "group": "cuadro6",
+      "text": "Clasificación de tapitas",
+      "createdAt": 1792446422124,
+      "createdBy": "irvin_martinez",
+      "updatedAt": 1792446422124,
+      "updatedBy": "irvin_martinez"
+    }
+  ]
 }
