@@ -69,6 +69,17 @@
       "type": "sistema",
       "action": "Guardó datos manualmente",
       "detail": "Persistencia forzada en el navegador"
+    },
+    {
+      "id": "aud_mvfsbo47_of60ud",
+      "ts": 1792446428887,
+      "actor": "irvin_martinez",
+      "actorName": "irvin_martinez",
+      "role": "superadmin",
+      "mode": "admin",
+      "type": "sistema",
+      "action": "Guardó datos manualmente",
+      "detail": "Persistencia forzada en el navegador"
     }
   ]
 }
