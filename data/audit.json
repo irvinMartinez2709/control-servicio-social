@@ -1,0 +1,18 @@
+{
+  "_info": {
+    "app": "Control Servicio Social",
+    "description": "Registro de auditoría: cada inicio de sesión, cuenta creada, cambio, solicitud y acción de la plataforma, con usuario, fecha y hora.",
+    "version": 1,
+    "campos": {
+      "ts": "timestamp en milisegundos",
+      "actor": "usuario que ejecutó la acción",
+      "actorName": "nombre visible del actor",
+      "role": "rol del actor al momento de la acción",
+      "mode": "modo de sesión (visitante|admin)",
+      "type": "categoría: sesion|cuentas|asistencia|contenido|grupos|sistema",
+      "action": "acción realizada",
+      "detail": "detalle legible del evento"
+    }
+  },
+  "items": []
+}

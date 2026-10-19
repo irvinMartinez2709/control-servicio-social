@@ -1,0 +1,27 @@
+{
+  "name": "Control Servicio Social",
+  "short_name": "Servicio Social",
+  "description": "Plataforma de control, auditoría y registro de horas de Servicio Social (Cuadro 3 y Cuadro 6).",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0d1330",
+  "theme_color": "#4f46e5",
+  "lang": "es",
+  "categories": ["productivity", "education"],
+  "icons": [
+    {
+      "src": "assets/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

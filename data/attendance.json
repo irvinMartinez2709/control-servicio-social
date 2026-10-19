@@ -1,0 +1,18 @@
+{
+  "_info": {
+    "app": "Control Servicio Social",
+    "description": "Registros de asistencia de Cuadro 3 y Cuadro 6: horas, estados (Pendiente/Aprobado/Rechazado) y referencias a bitácoras.",
+    "version": 1,
+    "campos": {
+      "userId": "identificador del usuario",
+      "date": "fecha de la jornada (YYYY-MM-DD)",
+      "group": "cuadro3 | cuadro6",
+      "entry": "hora de llegada (HH:MM)",
+      "exit": "hora de salida (HH:MM)",
+      "minutes": "minutos trabajados (enteros; 60 = 1 hora)",
+      "status": "pendiente | aprobado | rechazado",
+      "detail": "actividad o incidencia del turno"
+    }
+  },
+  "items": []
+}

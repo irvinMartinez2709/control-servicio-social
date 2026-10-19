@@ -1,0 +1,30 @@
+{
+  "_info": {
+    "app": "Control Servicio Social",
+    "description": "Grupos de la plataforma. Solo el Líder Supremo puede crear, renombrar o eliminar grupos.",
+    "version": 1,
+    "campos": {
+      "id": "identificador estable del grupo (slug)",
+      "name": "nombre visible",
+      "builtin": "true si es un grupo base del proyecto",
+      "createdAt": "timestamp de creación",
+      "createdBy": "usuario que lo creó"
+    }
+  },
+  "items": [
+    {
+      "id": "cuadro3",
+      "name": "Cuadro 3",
+      "builtin": true,
+      "createdAt": 0,
+      "createdBy": "sistema"
+    },
+    {
+      "id": "cuadro6",
+      "name": "Cuadro 6",
+      "builtin": true,
+      "createdAt": 0,
+      "createdBy": "sistema"
+    }
+  ]
+}

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="Plataforma de control, auditoría y registro de horas de Servicio Social." />
+  <meta name="theme-color" content="#4f46e5" />
+  <title>Control Servicio Social</title>
+
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/favicon.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Tipografía identitaria -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- FontAwesome 6 (obligatorio, sin emojis) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <!-- QR para configuración TOTP -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Hojas de estilo modulares -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/views.css" />
+</head>
+<body>
+
+  <!-- ============================ SPLASH SCREEN ============================ -->
+  <div id="splash" class="splash" role="status" aria-live="polite">
+    <div class="splash__halo"></div>
+    <img class="splash__logo" src="assets/logo.png" alt="Logo Control Servicio Social" />
+    <div class="splash__bar"><span></span></div>
+    <div class="splash__hint">Validando sesión…</div>
+  </div>
+
+  <!-- ============================ APLICACIÓN ============================ -->
+  <div id="app" class="app" hidden>
+
+    <!-- ---------- Barra superior ---------- -->
+    <header class="topbar">
+      <button id="btn-menu" class="icon-btn topbar__burger" type="button" aria-label="Abrir menú">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <a class="brand" href="#/resumen">
+        <img src="assets/logo.png" alt="Logo" class="brand__logo" />
+      </a>
+
+      <div class="topbar__spacer"></div>
+
+      <div class="topbar__actions">
+        <span id="topbar-group" class="chip chip--soft" hidden></span>
+
+        <button id="btn-save" class="icon-btn" type="button" aria-label="Guardar datos" title="Guardar datos" hidden>
+          <i class="fa-solid fa-floppy-disk"></i>
+        </button>
+
+        <button id="btn-theme" class="icon-btn" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <div class="usermenu">
+          <button id="btn-usermenu" class="usermenu__trigger" type="button" aria-haspopup="true" aria-expanded="false">
+            <span id="avatar" class="avatar"><i class="fa-solid fa-user"></i></span>
+            <span class="usermenu__meta">
+              <strong id="uname">—</strong>
+              <small id="urole">—</small>
+            </span>
+            <i class="fa-solid fa-chevron-down usermenu__caret"></i>
+          </button>
+          <div id="usermenu-drop" class="usermenu__drop" hidden>
+            <a href="#/ajustes" class="usermenu__item"><i class="fa-solid fa-gear"></i> Ajustes y perfil</a>
+            <button type="button" class="usermenu__item" id="mi-switch-mode" data-action="switch-mode" hidden><i class="fa-solid fa-repeat"></i> Cambiar de modo</button>
+            <button type="button" class="usermenu__item" data-action="export"><i class="fa-solid fa-file-export"></i> Exportar datos</button>
+            <button type="button" class="usermenu__item usermenu__item--danger" data-action="logout">
+              <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ---------- Cuerpo ---------- -->
+    <div class="shell">
+      <div id="backdrop" class="backdrop" hidden></div>
+
+      <!-- Navegación lateral -->
+      <nav id="sidebar" class="sidebar" aria-label="Navegación principal">
+        <div class="sidebar__section">
+          <span class="sidebar__label">Principal</span>
+          <a class="navitem" href="#/resumen" data-route="resumen">
+            <i class="fa-solid fa-chart-pie"></i><span>Resumen</span>
+          </a>
+          <a class="navitem" href="#/asistencia" data-route="asistencia">
+            <i class="fa-solid fa-calendar-check"></i><span>Asistencia</span>
+          </a>
+          <a class="navitem" href="#/bitacora" data-route="bitacora">
+            <i class="fa-solid fa-book-open"></i><span>Bitácora</span>
+          </a>
+          <a class="navitem" href="#/fotos" data-route="fotos">
+            <i class="fa-solid fa-images"></i><span>Galería</span>
+          </a>
+        </div>
+
+        <div class="sidebar__section" id="nav-admin" hidden>
+          <span class="sidebar__label">Administración</span>
+          <a class="navitem" href="#/solicitudes" data-route="solicitudes">
+            <i class="fa-solid fa-stamp"></i><span>Solicitudes</span>
+            <span id="badge-pending" class="badge-count" hidden>0</span>
+          </a>
+          <a class="navitem" href="#/usuarios" data-route="usuarios">
+            <i class="fa-solid fa-users-gear"></i><span>Usuarios</span>
+          </a>
+          <a class="navitem" href="#/auditoria" data-route="auditoria">
+            <i class="fa-solid fa-clipboard-list"></i><span>Auditoría</span>
+          </a>
+        </div>
+
+        <div class="sidebar__section" id="nav-super" hidden>
+          <span class="sidebar__label">Líder Supremo</span>
+          <a class="navitem" href="#/grupos" data-route="grupos">
+            <i class="fa-solid fa-people-group"></i><span>Grupos</span>
+          </a>
+        </div>
+
+        <div class="sidebar__section">
+          <span class="sidebar__label">Sistema</span>
+          <a class="navitem" href="#/ajustes" data-route="ajustes">
+            <i class="fa-solid fa-sliders"></i><span>Ajustes</span>
+          </a>
+        </div>
+
+        <div class="sidebar__foot">
+          <div class="meta-card">
+            <div class="meta-card__row">
+              <span>Meta semestral</span>
+              <strong>60 hrs</strong>
+            </div>
+            <div class="progress progress--thin">
+              <div id="side-progress" class="progress__fill" style="width:0%"></div>
+            </div>
+            <div class="meta-card__row meta-card__row--muted">
+              <span id="side-hours">0 hrs 0 mins</span>
+              <span id="side-pct">0%</span>
+            </div>
+          </div>
+          <div class="sidebar__ver">v1.0.0 · GitHub Pages</div>
+        </div>
+      </nav>
+
+      <!-- Contenido -->
+      <main id="view" class="view" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <!-- ============================ CAPAS UI ============================ -->
+  <div id="toast-host" class="toast-host" aria-live="polite"></div>
+  <div id="modal-host"></div>
+
+  <!-- Scripts estructurados -->
+  <script src="js/util.js"></script>
+  <script src="js/crypto.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/audit.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/views/login.js"></script>
+  <script src="js/views/dashboard.js"></script>
+  <script src="js/views/attendance.js"></script>
+  <script src="js/views/solicitudes.js"></script>
+  <script src="js/views/bitacora.js"></script>
+  <script src="js/views/gallery.js"></script>
+  <script src="js/views/users.js"></script>
+  <script src="js/views/groups.js"></script>
+  <script src="js/views/audit.js"></script>
+  <script src="js/views/settings.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

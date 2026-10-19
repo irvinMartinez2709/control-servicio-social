@@ -1,0 +1,9 @@
+{
+  "_info": {
+    "app": "Control Servicio Social",
+    "description": "Metadatos de fotos: ruta de archivo, fecha asociada y descripción.",
+    "version": 1,
+    "hint": "Las imágenes viven en assets/photos/ (no en data/). Usa el campo path para vincular el archivo publicado."
+  },
+  "items": []
+}

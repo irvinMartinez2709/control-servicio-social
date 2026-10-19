@@ -1,0 +1,138 @@
+/* =============================================================
+   tokens.css — Sistema de diseño Flat "Control Servicio Social"
+   Identidad: Indigo estructural + Turquesa acento + Ámbar alertas
+   ============================================================= */
+
+:root {
+  /* Paleta semántica (compartida entre temas) */
+  --indigo-50:  #eef1ff;
+  --indigo-100: #e0e5ff;
+  --indigo-300: #a5b0ff;
+  --indigo-500: #4f46e5;
+  --indigo-600: #4338ca;
+  --indigo-700: #3730a3;
+
+  --teal-400: #2dd4bf;
+  --teal-500: #14b8a6;
+  --teal-600: #0d9488;
+
+  --amber-500: #f59e0b;
+  --rose-500:  #e11d48;
+  --emerald-500: #10b981;
+
+  /* Forma y ritmo */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-pill: 999px;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  /* Tipografía */
+  --font: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  /* Transiciones */
+  --ease: cubic-bezier(.22, .61, .36, 1);
+  --t-fast: .16s var(--ease);
+  --t-med: .28s var(--ease);
+
+  /* Layout */
+  --topbar-h: 64px;
+  --sidebar-w: 264px;
+  --z-splash: 9999;
+  --z-topbar: 900;
+  --z-drawer: 950;
+  --z-modal: 1200;
+  --z-toast: 1400;
+}
+
+/* ------------------------- MODO CLARO ------------------------- */
+html[data-theme="light"] {
+  --bg:          #f2f4fb;
+  --bg-grain:    #e9ecf7;
+  --surface:     #ffffff;
+  --surface-2:   #f5f6fc;
+  --surface-3:   #eceffb;
+  --border:      #e2e6f2;
+  --border-strong:#cfd6e9;
+
+  --text:        #121a30;
+  --text-2:      #3d4767;
+  --muted:       #6b7697;
+
+  --primary:      var(--indigo-500);
+  --primary-hover: var(--indigo-600);
+  --primary-contrast: #ffffff;
+  --primary-soft: var(--indigo-50);
+  --primary-border: var(--indigo-100);
+
+  --accent:      var(--teal-600);
+  --accent-soft: #d9f6f1;
+
+  --success:     var(--emerald-500);
+  --success-soft:#d9f8ec;
+  --warn:        var(--amber-500);
+  --warn-soft:   #fdf0d5;
+  --danger:      var(--rose-500);
+  --danger-2:    #be123c;
+  --danger-soft: #ffe4ea;
+
+  --shadow-1: 0 1px 2px rgba(18, 26, 48, .06), 0 4px 14px rgba(18, 26, 48, .05);
+  --shadow-2: 0 8px 30px rgba(18, 26, 48, .10);
+  --shadow-3: 0 20px 60px rgba(18, 26, 48, .16);
+
+  --sidebar-bg:   #101735;
+  --sidebar-text: #b9c2e6;
+  --sidebar-active: #ffffff;
+
+  --skeleton: linear-gradient(90deg, #eceffb 25%, #f6f8ff 50%, #eceffb 75%);
+}
+
+/* ------------------------- MODO OSCURO ------------------------- */
+html[data-theme="dark"] {
+  --bg:          #0a0f22;
+  --bg-grain:    #070b19;
+  --surface:     #111838;
+  --surface-2:   #161f45;
+  --surface-3:   #1c2754;
+  --border:      #242e58;
+  --border-strong:#33407a;
+
+  --text:        #eaeefc;
+  --text-2:      #c0c9ea;
+  --muted:       #8d99c4;
+
+  --primary:     #7c85ff;
+  --primary-hover:#939bff;
+  --primary-contrast: #0a0f22;
+  --primary-soft: #1a2155;
+  --primary-border: #2b3480;
+
+  --accent:      var(--teal-400);
+  --accent-soft: #0f3d3c;
+
+  --success:     #34d399;
+  --success-soft:#0d3b31;
+  --warn:        #fbbf24;
+  --warn-soft:   #3d2c07;
+  --danger:      #fb7185;
+  --danger-2:    #f43f5e;
+  --danger-soft: #431321;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .35);
+  --shadow-2: 0 10px 34px rgba(0, 0, 0, .5);
+  --shadow-3: 0 24px 70px rgba(0, 0, 0, .6);
+
+  --sidebar-bg:   #0b1129;
+  --sidebar-text: #97a2d0;
+  --sidebar-active: #ffffff;
+
+  --skeleton: linear-gradient(90deg, #161f45 25%, #1e2a5e 50%, #161f45 75%);
+}

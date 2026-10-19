@@ -1,0 +1,31 @@
+{
+  "_info": {
+    "app": "Control Servicio Social",
+    "description": "Usuarios, roles, hashes de contraseñas (SHA-256 con sal), datos de contacto y configuración 2FA.",
+    "version": 2,
+    "hint": "Las contraseñas nunca se guardan en texto plano. Exporta este archivo desde Ajustes > Datos y respaldos > Descargar archivos JSON del repo."
+  },
+  "items": [
+    {
+      "id": "usr_super",
+      "username": "irvin_martinez",
+      "displayName": "Irvin Martínez",
+      "role": "superadmin",
+      "group": "cuadro3",
+      "email": "",
+      "phone": "",
+      "cedula": "",
+      "carrera": "",
+      "passwordHash": "sha256$2887208825447ab4bea2cb9b7b03af42$20a2cb0bffd036ada29984ebb2c568aeddffdf4f589ce0f7a5bfb0105776794e",
+      "twoFactor": {
+        "method": null,
+        "pinHash": null,
+        "secret": null,
+        "enabled": false
+      },
+      "mustChangePassword": false,
+      "createdAt": 1760736000000,
+      "createdBy": "sistema"
+    }
+  ]
+}

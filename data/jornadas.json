@@ -1,0 +1,8 @@
+{
+  "_info": {
+    "app": "Control Servicio Social",
+    "description": "Jornadas habilitadas mediante la acción “Añadir Asistencia” (fecha + grupo).",
+    "version": 1
+  },
+  "items": []
+}

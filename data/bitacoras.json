@@ -1,0 +1,13 @@
+{
+  "_info": {
+    "app": "Control Servicio Social",
+    "description": "Bitácora de actividades: resumen narrativo por fecha de jornada.",
+    "version": 1,
+    "campos": {
+      "date": "fecha de la jornada (YYYY-MM-DD)",
+      "text": "resumen de actividades realizadas ese día",
+      "updatedBy": "usuario que redactó o actualizó la entrada"
+    }
+  },
+  "items": []
+}

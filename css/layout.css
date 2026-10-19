@@ -1,0 +1,220 @@
+/* =============================================================
+   layout.css — Esqueleto de la aplicación (topbar, sidebar, vista)
+   ============================================================= */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------- TOPBAR ------------------------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-topbar);
+  height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-4);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar .topbar__burger { display: none; }
+.topbar__spacer { flex: 1; }
+.topbar__actions { display: flex; align-items: center; gap: var(--sp-2); }
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  color: var(--text);
+  min-width: 0;
+}
+.brand__logo {
+  width: auto;
+  height: 40px;
+  object-fit: contain;
+}
+[data-theme="dark"] .brand__logo {
+  filter: invert(1) hue-rotate(180deg);
+}
+.brand__text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.brand__text strong { font-size: .95rem; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
+.brand__text small { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+
+/* ------------------------- SHELL ------------------------- */
+.shell {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  min-height: calc(100vh - var(--topbar-h));
+}
+
+.backdrop {
+  position: fixed;
+  inset: var(--topbar-h) 0 0 0;
+  background: rgba(6, 10, 25, .55);
+  backdrop-filter: blur(2px);
+  z-index: calc(var(--z-drawer) - 1);
+  animation: fade .2s var(--ease);
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ------------------------- SIDEBAR ------------------------- */
+.sidebar {
+  width: var(--sidebar-w);
+  flex: 0 0 var(--sidebar-w);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-3) var(--sp-4);
+  position: sticky;
+  top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  overflow-y: auto;
+}
+
+.sidebar__section { display: grid; gap: 4px; }
+.sidebar__label {
+  font-size: .66rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--sidebar-text) 65%, transparent);
+  padding: 6px 12px 4px;
+}
+
+.navitem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  color: var(--sidebar-text);
+  font-weight: 600;
+  font-size: .9rem;
+  position: relative;
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.navitem i {
+  width: 20px;
+  text-align: center;
+  font-size: .95rem;
+  opacity: .85;
+}
+.navitem:hover { background: rgba(255, 255, 255, .07); color: #fff; transform: translateX(2px); }
+.navitem.is-active {
+  background: linear-gradient(90deg, var(--indigo-500), color-mix(in srgb, var(--indigo-500) 55%, transparent));
+  color: var(--sidebar-active);
+  box-shadow: 0 8px 22px rgba(79, 70, 229, .35);
+}
+.navitem.is-active i { opacity: 1; }
+
+.badge-count {
+  margin-left: auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-pill);
+  background: var(--amber-500);
+  color: #231603;
+  font-size: .7rem;
+  font-weight: 800;
+}
+
+.sidebar__foot { margin-top: auto; display: grid; gap: var(--sp-3); padding: 0 6px; }
+.meta-card {
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+  display: grid;
+  gap: 8px;
+}
+.meta-card__row { display: flex; justify-content: space-between; font-size: .78rem; color: #dfe4ff; }
+.meta-card__row--muted { color: var(--sidebar-text); }
+.meta-card strong { color: #fff; }
+.sidebar__ver { text-align: center; font-size: .68rem; color: color-mix(in srgb, var(--sidebar-text) 60%, transparent); }
+
+/* ------------------------- VISTA ------------------------- */
+.view {
+  flex: 1;
+  min-width: 0;
+  padding: var(--sp-5) var(--sp-5) var(--sp-7);
+  animation: viewIn .3s var(--ease);
+}
+
+/* Modo autenticación: se oculta el armazón de la aplicación */
+.app--auth .topbar,
+.app--auth .sidebar { display: none !important; }
+.app--auth .view { padding: 0; }
+.app--auth .shell { min-height: 100vh; }
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-5);
+}
+.page-head__text { min-width: 0; }
+.page-head h1 { margin-bottom: .15em; }
+.page-head p { color: var(--muted); margin: 0; font-size: .9rem; }
+.page-head__actions { margin-left: auto; display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .74rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+/* ------------------------- RESPONSIVE ------------------------- */
+@media (max-width: 960px) {
+  .topbar .topbar__burger { display: inline-flex; }
+  .brand__text small { display: none; }
+  .usermenu .usermenu__meta { display: none; }
+
+  .sidebar {
+    position: fixed;
+    top: var(--topbar-h);
+    left: 0;
+    bottom: 0;
+    height: auto;
+    z-index: var(--z-drawer);
+    transform: translateX(-105%);
+    transition: transform var(--t-med);
+    box-shadow: var(--shadow-3);
+  }
+  .sidebar.is-open { transform: translateX(0); }
+
+  .view { padding: var(--sp-4) var(--sp-4) var(--sp-6); }
+}
+
+@media (max-width: 760px) {
+  #topbar-group { display: none !important; }
+}
+
+@media (max-width: 560px) {
+  .brand__text { display: none; }
+  .topbar { padding: 0 var(--sp-3); gap: var(--sp-2); }
+  .page-head__actions { margin-left: 0; width: 100%; }
+  .page-head__actions .btn { flex: 1 1 auto; justify-content: center; }
+}
