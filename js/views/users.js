@@ -85,13 +85,13 @@
       submitLabel: "Guardar contraseña",
       submitIcon: "fa-floppy-disk",
       fields: [
-        { name: "target", label: "Usuario afectado", icon: "fa-user", value: `${target.displayName} (${target.username})`, hint: "Solo Visitantes pueden ser restablecidos por un Admin." },
+        { name: "target", label: "Usuario afectado", icon: "fa-user", value: `${target.displayName} (${target.username})`, hint: "El Líder Supremo restablece cualquier cuenta; un Admin solo Visitantes." },
         { name: "password", label: "Nueva contraseña", icon: "fa-key", type: "password", required: true, hint: "Mínimo 6 caracteres." },
         { name: "confirm", label: "Confirmar contraseña", icon: "fa-lock", type: "password", required: true }
       ],
       onSubmit: async (data) => {
         if (data.password !== data.confirm) throw new Error("Las contraseñas no coinciden");
-        await SS.auth.resetVisitorPassword(actor, target.id, data.password);
+        await SS.auth.resetPasswordFor(actor, target.id, data.password);
         UI.toast("Contraseña restablecida", "success", 3400, target.username);
         return true;
       }
@@ -345,7 +345,7 @@
       acts.push(`<button class="btn btn--sm btn--soft" data-act="promote" data-user="${esc(u.id)}"><i class="fa-solid fa-user-shield"></i> Hacer Admin</button>`);
     if (SS.auth.can(actor, "users:demote-admin", u) && u.role === "admin")
       acts.push(`<button class="btn btn--sm btn--ghost" data-act="demote" data-user="${esc(u.id)}"><i class="fa-solid fa-user-minus"></i> Revocar Admin</button>`);
-    if (u.role === "visitante" && SS.auth.can(actor, "reset:visitor-password", u))
+    if (!isSelf && (SS.auth.isSuper(actor) || (u.role === "visitante" && SS.auth.can(actor, "reset:visitor-password", u))))
       acts.push(`<button class="btn btn--sm btn--ghost" data-act="reset" data-user="${esc(u.id)}"><i class="fa-solid fa-key"></i> Restablecer clave</button>`);
     if (!isSelf && SS.auth.can(actor, "users:delete", u))
       acts.push(`<button class="btn btn--sm btn--ghost" data-act="delete" data-user="${esc(u.id)}" title="Eliminar"><i class="fa-solid fa-trash"></i></button>`);

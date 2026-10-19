@@ -267,20 +267,32 @@
     return true;
   }
 
-  /** Restablece contraseña de un Visitante (solo Admin / Super Admin) */
-  async function resetVisitorPassword(actor, targetId, newPassword) {
-    if (!can(actor, "reset:visitor-password", SS.store.getUser(targetId))) {
-      throw new Error("No tienes permiso para restablecer esta contraseña");
-    }
+  /**
+   * Restablece la contraseña de una cuenta olvidada.
+   * - Líder Supremo: cualquier usuario (incluidos otros Admins y Supers).
+   * - Admin: solo Visitantes (los Admins usan 2FA desde su perfil).
+   * - Nunca la propia cuenta: para eso está Ajustes → Cambiar contraseña.
+   */
+  async function resetPasswordFor(actor, targetId, newPassword) {
     const target = SS.store.getUser(targetId);
     if (!target) throw new Error("Usuario no encontrado");
-    if (target.role !== ROLES.VISITOR) {
-      throw new Error("Solo se pueden restablecer contraseñas de Visitantes (usa 2FA desde el perfil)");
+    if (actor && actor.id === target.id) {
+      throw new Error("Para cambiar tu propia contraseña usa Ajustes → Cambiar contraseña");
+    }
+    const rol = target.role === ROLES.SUPER ? "Líder Supremo" : target.role === ROLES.ADMIN ? "Admin" : "Visitante";
+    if (isSuper(actor)) {
+      // El Líder Supremo restablece cualquier cuenta (por si olvidan su clave)
+    } else if (target.role === ROLES.VISITOR && can(actor, "reset:visitor-password", target)) {
+      // Un Admin restablece únicamente Visitantes
+    } else if (target.role !== ROLES.VISITOR) {
+      throw new Error("Solo el Líder Supremo puede restablecer contraseñas de Administradores");
+    } else {
+      throw new Error("No tienes permiso para restablecer esta contraseña");
     }
     if (String(newPassword).length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres");
     const hash = await C.hashPassword(newPassword);
     SS.store.updateUser(targetId, { passwordHash: hash, mustChangePassword: false });
-    SS.audit.log("cuentas", "Restableció contraseña", `@${target.username}`);
+    SS.audit.log("cuentas", "Restableció contraseña", `@${target.username} · ${rol}`);
     return true;
   }
 
@@ -348,9 +360,9 @@
     ROLES, MODES,
     currentUser, isAuthed, openSession, logout,
     session, sessionMode, effectiveRole, visibleGroup,
-    register, checkCredentials, setVisitorCredentials,
+    register, checkCredentials, setVisitorCredentials, resetPasswordFor,
     requires2FA, availableMethods, verifySecondFactor, completeAdminLogin,
-    changeOwnPassword, resetVisitorPassword,
+    changeOwnPassword,
     can, isSuper, isAdmin
   };
 })();

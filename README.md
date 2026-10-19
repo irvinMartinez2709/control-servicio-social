@@ -91,7 +91,7 @@ El login pide **solo usuario y contraseña**. El modo NO se elige antes de entra
 
 | Rol | Permisos |
 |---|---|
-| Super Admin | CRUD total, aprobar/rechazar, **crear, renombrar y eliminar grupos**, nombrar o revocar Admins, meta de horas, sincronizar y reiniciar. Ningún otro usuario puede modificarlo. |
+| Super Admin | CRUD total, aprobar/rechazar, **crear, renombrar y eliminar grupos**, nombrar o revocar Admins, **restablece la contraseña de cualquier cuenta (por si la olvidan)**, meta de horas, sincronizar y reiniciar. Ningún otro usuario puede modificarlo. |
 | Admin | CRUD de asistencia, fotos y bitácoras; aprueba/deniega/corrige solicitudes; **cambia el grupo de cualquier persona (y el suyo)**; nombra Admins; restablece contraseñas de Visitantes; accede a la **Auditoría**. **También registra sus horas.** |
 | Visitante | Solo lectura de **su grupo**; envía su solicitud de asistencia (fecha, llegada, salida) y cambia su propia contraseña. |
 
