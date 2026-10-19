@@ -197,14 +197,17 @@
     UI.confirm({
       heading: "Eliminar usuario",
       title: `¿Eliminar la cuenta de ${target.displayName}?`,
-      message: `Usuario: ${target.username}. Sus registros de asistencia se conservarán en la auditoría.`,
+      message: `Usuario: ${target.username}. Sus registros de asistencia se eliminarán junto con la cuenta; la auditoría conserva este evento.`,
       confirmLabel: "Eliminar cuenta",
       danger: true
     }).then((ok) => {
       if (!ok) return;
+      SS.store.loadAll();
+      const recs = SS.store.state.attendance.filter((r) => r.userId === target.id).length;
       SS.store.removeUser(target.id);
-      SS.audit.log("cuentas", "Eliminó usuario", `@${target.username} · ${target.displayName}`);
-      UI.toast("Usuario eliminado", "warn");
+      SS.audit.log("cuentas", "Eliminó usuario",
+        `@${target.username} · ${target.displayName}${recs ? ` · ${recs} asistencia${recs === 1 ? "" : "s"} eliminada${recs === 1 ? "" : "s"}` : ""}`);
+      UI.toast(recs ? "Usuario eliminado con sus asistencias" : "Usuario eliminado", "warn");
       render(U.$("#view"));
       SS.app.refreshChrome();
     });

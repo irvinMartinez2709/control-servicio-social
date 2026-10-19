@@ -122,6 +122,9 @@ El login pide **solo usuario y contraseña**. El modo NO se elige antes de entra
 - Los visitantes solo ven la información (horas, jornadas, bitácoras y fotos) de **su grupo**.
 - **Solo el Líder Supremo crea grupos** (sección *Grupos*); los grupos no pueden eliminarse
   si tienen usuarios, registros, jornadas, fotos o bitácoras asociadas.
+- Al **eliminar una cuenta**, sus registros de asistencia se eliminan también: dejan de
+  aparecer en el resumen, la asistencia, las colas y la portada pública. La *Auditoría*
+  conserva el evento de eliminación.
 
 ### Auditoría
 

@@ -94,6 +94,16 @@
     state.groups = read(KEYS.groups, []);
     state.audit = read(KEYS.audit, []);
     state.settings = Object.assign({}, DEFAULT_SETTINGS, read(KEYS.settings, {}));
+
+    // Higiene de datos: una cuenta eliminada no debe dejar asistencias
+    // huérfanas en ninguna vista (horas, calendario, portada, colas).
+    // La auditoría es historia y nunca se toca.
+    if (state.users.length && state.attendance.length) {
+      const ids = new Set(state.users.map((u) => u.id));
+      const before = state.attendance.length;
+      state.attendance = state.attendance.filter((r) => r.userId && ids.has(r.userId));
+      if (state.attendance.length !== before) write(KEYS.attendance, state.attendance);
+    }
   }
 
   function persist(collection) {
@@ -430,6 +440,11 @@
     const before = state.users.length;
     state.users = state.users.filter((u) => u.id !== id);
     persist("users");
+    // La cuenta eliminada desaparece también de asistencias y solicitudes;
+    // la auditoría conserva el evento de eliminación.
+    const n = state.attendance.length;
+    state.attendance = state.attendance.filter((r) => r.userId !== id);
+    if (state.attendance.length !== n) persist("attendance");
     return state.users.length < before;
   }
 
