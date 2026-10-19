@@ -71,7 +71,7 @@
     if (!/^[a-zA-Z0-9_.-]{4,24}$/.test(username)) {
       throw new Error("El usuario debe tener de 4 a 24 caracteres (letras, números, punto, guion bajo o guion)");
     }
-    if (SS.store.getUserByUsername(username)) throw new Error("Ese nombre de usuario ya existe");
+    if (SS.store.usernameTaken(username)) throw new Error("Ese nombre de usuario ya existe");
     if (String(data.password || "").length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres");
     if (data.password !== data.confirm) throw new Error("Las contraseñas no coinciden");
 
@@ -111,14 +111,47 @@
   }
 
   /* ------------------------- Paso 1: credenciales ------------------------- */
+  /**
+   * Valida usuario + contraseña.
+   * Soporta dos "sabores" de credenciales:
+   *   - "principal": usuario/contraseña normales (administración o visitante puro)
+   *   - "visitante": usuario/contraseña propios de la versión visitante de un admin
+   * @returns {Promise<{user: object, flavor: "principal"|"visitante"}>}
+   */
   async function checkCredentials(username, password) {
     SS.store.loadAll();
-    const user = SS.store.getUserByUsername(username);
+    const hit = SS.store.resolveLoginUser(username);
+    const stored = hit
+      ? (hit.flavor === "visitante" ? hit.user.visitorPasswordHash : hit.user.passwordHash)
+      : null;
     // Hash ficticio para usuarios inexistentes (evita enumeración básica)
-    const stored = user ? user.passwordHash : "$00000000000000000000000000000000$0000000000000000000000000000000000000000000000000000000000000000";
-    const ok = await C.verifyPassword(password, stored);
-    if (!user || !ok) throw new Error("Usuario o contraseña incorrectos");
-    return user;
+    const dummy = "$00000000000000000000000000000000$0000000000000000000000000000000000000000000000000000000000000000";
+    const ok = await C.verifyPassword(password, stored || dummy);
+    if (!hit || !stored || !ok) throw new Error("Usuario o contraseña incorrectos");
+    return hit;
+  }
+
+  /**
+   * Fija el usuario y contraseña propios de la versión visitante de un administrador.
+   * Con estas credenciales el admin entra directo como visitante (sin pregunta de modo).
+   */
+  async function setVisitorCredentials(user, data) {
+    if (!user || user.role === ROLES.VISITOR) throw new Error("Solo los administradores tienen versión visitante propia");
+    const username = String(data.username || "").trim();
+    if (!/^[a-zA-Z0-9_.-]{4,24}$/.test(username)) {
+      throw new Error("El usuario debe tener de 4 a 24 caracteres (letras, números, punto, guion bajo o guion)");
+    }
+    if (username.toLowerCase() === String(user.username).toLowerCase()) {
+      throw new Error("El usuario de tu versión visitante debe ser distinto al de administración");
+    }
+    if (SS.store.usernameTaken(username, user.id)) throw new Error("Ese nombre de usuario ya está en uso");
+    if (String(data.password || "").length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres");
+    if (data.password !== data.confirm) throw new Error("Las contraseñas no coinciden");
+    const passwordHash = await C.hashPassword(data.password);
+    SS.store.updateUser(user.id, { visitorUsername: username, visitorPasswordHash: passwordHash });
+    SS.audit.log("cuentas", "Configuró sus credenciales de versión visitante",
+      `@${user.username} → usuario visitante @${username}`);
+    return username;
   }
 
   /**
@@ -315,7 +348,7 @@
     ROLES, MODES,
     currentUser, isAuthed, openSession, logout,
     session, sessionMode, effectiveRole, visibleGroup,
-    register, checkCredentials,
+    register, checkCredentials, setVisitorCredentials,
     requires2FA, availableMethods, verifySecondFactor, completeAdminLogin,
     changeOwnPassword, resetVisitorPassword,
     can, isSuper, isAdmin

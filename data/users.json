@@ -1,7 +1,7 @@
 {
   "_info": {
     "app": "Control Servicio Social",
-    "description": "Usuarios, roles, hashes de contraseñas (SHA-256 con sal), datos de contacto y configuración 2FA.",
+    "description": "Usuarios, roles, hashes de contraseñas (SHA-256 con sal), datos de contacto y configuración 2FA. Los administradores pueden definir además un usuario/contraseña propios de su versión visitante (visitorUsername + visitorPasswordHash) para entrar directo como visitante.",
     "version": 2,
     "hint": "Las contraseñas nunca se guardan en texto plano. Exporta este archivo desde Ajustes > Datos y respaldos > Descargar archivos JSON del repo."
   },

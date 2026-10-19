@@ -89,6 +89,35 @@
     });
   }
 
+  /* ------------------------- Credenciales de versión visitante ------------------------- */
+  function visitorCreds(user) {
+    UI.formModal({
+      title: "Credenciales de tu versión visitante",
+      icon: "fa-user-lock",
+      submitLabel: "Guardar credenciales",
+      submitIcon: "fa-floppy-disk",
+      fields: [
+        {
+          name: "username", label: "Usuario visitante", icon: "fa-user", required: true,
+          value: user.visitorUsername || "", placeholder: "Ej. irvin_visitante",
+          hint: "4 a 24 caracteres. Debe ser distinto a tu usuario de administración y no puede coincidir con el de otra cuenta."
+        },
+        {
+          name: "password", label: "Contraseña visitante", icon: "fa-key", type: "password", required: true,
+          placeholder: "Mínimo 6 caracteres",
+          hint: "Totalmente independiente de tu contraseña de administración."
+        },
+        { name: "confirm", label: "Confirmar contraseña", icon: "fa-lock", type: "password", required: true }
+      ],
+      onSubmit: async (data) => {
+        const username = await SS.auth.setVisitorCredentials(user, data);
+        UI.toast("Credenciales de versión visitante guardadas", "success", 3600, `Ingresa con @${username}`);
+        render(U.$("#view"));
+        return true;
+      }
+    });
+  }
+
   /* ------------------------- Configuración 2FA ------------------------- */
   function manage2FA(user) {
     const tf = user.twoFactor || {};
@@ -334,6 +363,16 @@
             </div>
             <button class="btn btn--sm btn--soft" id="btn-2fa"><i class="fa-solid fa-shield"></i> ${user.twoFactor && user.twoFactor.enabled ? "Gestionar" : "Activar"}</button>
           </div>
+          ${user.role !== "visitante" ? `
+          <div class="setting-line">
+            <span class="card__icon card__icon--warn"><i class="fa-solid fa-user-lock"></i></span>
+            <div class="setting-line__text"><strong>Tu versión visitante</strong>
+              <span>${user.visitorUsername
+                ? `Usuario @${esc(user.visitorUsername)} con contraseña propia · ingresa directo como visitante`
+                : "Aún no defines usuario y contraseña propios para tu versión visitante"}</span>
+            </div>
+            <button class="btn btn--sm btn--soft" id="btn-visitor-creds"><i class="fa-solid fa-user-lock"></i> ${user.visitorUsername ? "Cambiar" : "Configurar"}</button>
+          </div>` : ""}
 
           <div class="gap-row mt-3">
             <button class="btn btn--primary" id="btn-pass"><i class="fa-solid fa-key"></i> Cambiar contraseña</button>
@@ -454,6 +493,8 @@
     root.querySelector("#btn-pass").addEventListener("click", () => changePassword(user));
     root.querySelector("#btn-2fa").addEventListener("click", () => manage2FA(user));
     root.querySelector("#btn-profile").addEventListener("click", () => editProfile(user));
+    const btnVisitorCreds = root.querySelector("#btn-visitor-creds");
+    if (btnVisitorCreds) btnVisitorCreds.addEventListener("click", () => visitorCreds(user));
     const btnGroup = root.querySelector("#btn-group");
     if (btnGroup) btnGroup.addEventListener("click", () => changeOwnGroup(user));
 

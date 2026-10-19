@@ -47,7 +47,7 @@
       ],
       onSubmit: async (data) => {
         if (!/^[a-zA-Z0-9_.-]{4,24}$/.test(data.username)) throw new Error("Usuario inválido: 4 a 24 caracteres");
-        if (SS.store.getUserByUsername(data.username)) throw new Error("Ese nombre de usuario ya existe");
+        if (SS.store.usernameTaken(data.username)) throw new Error("Ese nombre de usuario ya existe");
         if (data.password.length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres");
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email || "")) throw new Error("Escribe un correo electrónico válido");
         if (!/^[+()\d\s-]{8,15}$/.test(data.phone || "")) throw new Error("Escribe un teléfono válido (8 a 15 dígitos)");

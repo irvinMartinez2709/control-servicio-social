@@ -1,6 +1,7 @@
 /* =============================================================
-   views/login.js — Login (modo visitante / administración),
-   Registro y verificación en dos pasos
+   views/login.js — Login, elección de modo (solo cuentas de
+   administración), credenciales de versión visitante, 2FA
+   y Registro
    ============================================================= */
 (function () {
   "use strict";
@@ -82,23 +83,71 @@
       </aside>`;
   }
 
-  /** Selector de modo de ingreso (cuenta única, dos vistas) */
-  function modeSwitch(active) {
-    return `
-      <div class="mode-switch" role="tablist" aria-label="Modo de ingreso">
-        <button type="button" class="mode-switch__btn ${active === "visitante" ? "is-active" : ""}" data-mode="visitante">
-          <i class="fa-solid fa-eye"></i> Visitante
+  /** Selector de modo — SOLO se muestra tras validar credenciales de administración */
+  function prefKey(user) { return "ss.loginmode." + user.id; }
+  function getPrefMode(user) {
+    try { return localStorage.getItem(prefKey(user)) || ""; } catch (e) { return ""; }
+  }
+  function setPrefMode(user, mode) {
+    try { localStorage.setItem(prefKey(user), mode); } catch (e) { /* almacenamiento no disponible */ }
+  }
+
+  function renderModeChoice(root, user) {
+    const pref = getPrefMode(user);
+    const box = root.querySelector(".auth__box");
+    box.innerHTML = `
+      <div class="auth__head">
+        <span class="crumb"><i class="fa-solid fa-toggle-on"></i> Modo de ingreso</span>
+        <h1>¿Cómo deseas ingresar?</h1>
+        <p>La cuenta <strong>@${esc(user.username)}</strong> tiene acceso de administración.
+           Elige el modo de esta sesión.</p>
+      </div>
+
+      <div class="mode-choice">
+        <button type="button" class="mode-choice__opt ${pref === "visitante" ? "is-preferred" : ""}" data-mode="visitante">
+          <span class="mode-choice__icon"><i class="fa-solid fa-eye"></i></span>
+          <span class="mode-choice__body">
+            <strong>Visitante</strong>
+            <span>Solo tu grupo: horas, bitácoras y fotos. Entra directo, sin doble factor.</span>
+          </span>
+          ${pref === "visitante" ? '<em class="mode-choice__tag"><i class="fa-solid fa-star"></i> Tu opción preferida</em>' : ""}
         </button>
-        <button type="button" class="mode-switch__btn ${active === "admin" ? "is-active" : ""}" data-mode="admin">
-          <i class="fa-solid fa-user-shield"></i> Administración
+        <button type="button" class="mode-choice__opt ${pref === "admin" ? "is-preferred" : ""}" data-mode="admin">
+          <span class="mode-choice__icon"><i class="fa-solid fa-user-shield"></i></span>
+          <span class="mode-choice__body">
+            <strong>Administración</strong>
+            <span>Panel completo: aprobaciones, usuarios, grupos y auditoría. Exige doble factor.</span>
+          </span>
+          ${pref === "admin" ? '<em class="mode-choice__tag"><i class="fa-solid fa-star"></i> Tu opción preferida</em>' : ""}
         </button>
+      </div>
+
+      <div class="gap-row gap-row--end">
+        <button type="button" class="btn btn--ghost" id="btn-back-login"><i class="fa-solid fa-arrow-left"></i> Volver</button>
       </div>`;
+
+    box.querySelector("#btn-back-login").addEventListener("click", () => renderLogin(root));
+
+    box.querySelectorAll(".mode-choice__opt").forEach((opt) => {
+      opt.addEventListener("click", () => {
+        const mode = opt.dataset.mode;
+        setPrefMode(user, mode);
+
+        if (mode === "visitante") {
+          SS.auth.openSession(user, SS.auth.MODES.VISITOR);
+          SS.audit.log("sesion", "Inició sesión", `@${user.username} · modo visitante (cuenta de administración)`);
+          UI.toast(`Bienvenido, ${user.displayName}`, "success");
+          SS.app.onAuthenticated();
+          return;
+        }
+        // Administración → segundo factor o su configuración inicial
+        renderTwoFactor(root, user);
+      });
+    });
   }
 
   /* ============================ LOGIN ============================ */
   function renderLogin(root) {
-    let mode = "visitante";
-
     root.innerHTML = `
       <div class="auth">
         ${brandPanel()}
@@ -107,10 +156,8 @@
             <div class="auth__head">
               <span class="crumb"><i class="fa-solid fa-right-to-bracket"></i> Acceso</span>
               <h1>Iniciar sesión</h1>
-              <p>Elige cómo deseas ingresar y usa tu usuario y contraseña.</p>
+              <p>Ingresa con tu usuario y contraseña.</p>
             </div>
-
-            ${modeSwitch(mode)}
 
             <form id="form-login" class="auth__form" novalidate>
               ${field({ id: "username", label: "Usuario", icon: "fa-user", autocomplete: "username", required: true })}
@@ -129,13 +176,6 @@
 
     bindPasswordToggles(root);
 
-    root.querySelectorAll(".mode-switch__btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        mode = btn.dataset.mode;
-        root.querySelectorAll(".mode-switch__btn").forEach((b) => b.classList.toggle("is-active", b === btn));
-      });
-    });
-
     root.querySelector("[data-go='register']").addEventListener("click", () => { location.hash = "#/registro"; });
 
     const form = root.querySelector("#form-login");
@@ -152,23 +192,30 @@
       btn.innerHTML = `<i class="fa-solid fa-spinner spin"></i> Validando…`;
 
       try {
-        const user = await SS.auth.checkCredentials(username, password);
+        const hit = await SS.auth.checkCredentials(username, password);
 
-        if (mode === "admin") {
-          if (user.role === "visitante") {
-            SS.audit.log("sesion", "Intento de acceso administrativo denegado", `@${username} · cuenta sin privilegios`, { actor: username, actorName: username });
-            throw new Error("Esta cuenta no tiene privilegios de administración");
-          }
-          // Segundo factor o su configuración inicial
-          renderTwoFactor(root, user);
+        // Credenciales de versión visitante propias de un admin → entra directo como visitante
+        if (hit.flavor === "visitante") {
+          SS.auth.openSession(hit.user, SS.auth.MODES.VISITOR);
+          SS.audit.log("sesion", "Inició sesión", `@${hit.user.username} · modo visitante · credenciales de versión visitante`);
+          UI.toast(`Bienvenido, ${hit.user.displayName}`, "success");
+          SS.app.onAuthenticated();
           return;
         }
 
-        // Modo visitante: cualquier cuenta (incluso un Admin) ingresa a la vista de su grupo
-        SS.auth.openSession(user, SS.auth.MODES.VISITOR);
-        SS.audit.log("sesion", "Inició sesión", `@${user.username} · modo visitante`);
-        UI.toast(`Bienvenido, ${user.displayName}`, "success");
-        SS.app.onAuthenticated();
+        const user = hit.user;
+
+        // Visitante normal → entra directo, sin preguntar el modo
+        if (user.role === "visitante") {
+          SS.auth.openSession(user, SS.auth.MODES.VISITOR);
+          SS.audit.log("sesion", "Inició sesión", `@${user.username} · modo visitante`);
+          UI.toast(`Bienvenido, ${user.displayName}`, "success");
+          SS.app.onAuthenticated();
+          return;
+        }
+
+        // Cuenta de administración → aquí (y solo aquí) se pregunta el modo de ingreso
+        renderModeChoice(root, user);
       } catch (err) {
         SS.audit.log("sesion", "Inicio de sesión fallido", `Usuario intentado: ${username}`, { actor: username || "anonimo", actorName: username || "Anónimo" });
         UI.toast(err.message || "No se pudo iniciar sesión", "error");

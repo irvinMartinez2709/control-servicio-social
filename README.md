@@ -78,10 +78,16 @@ Labor social/
 
 ### Modos de ingreso (cuenta única, dos vistas)
 
-En el login se elige el modo. **Cualquier cuenta** (incluso un Admin) puede ingresar como
-Visitante para ver sus horas y la información de su grupo sin 2FA. El modo Administración
-solo está disponible para cuentas Admin / Líder Supremo y exige 2FA. Desde el menú de usuario
-puede **Cambiar de modo** en cualquier momento.
+El login pide **solo usuario y contraseña**. El modo NO se elige antes de entrar:
+
+- **Cuenta de Visitante normal:** entra directo como Visitante, sin ninguna pregunta.
+- **Credenciales de versión visitante de un Admin:** el admin puede definir en
+  *Ajustes → Tu versión visitante* un **usuario y contraseña distintos** para su vista
+  de visitante; con ellos entra directo como Visitante, sin pregunta ni 2FA.
+- **Usuario y contraseña de administración:** solo aquí aparece la pregunta
+  **"¿Cómo deseas ingresar?"** (Visitante o Administración). Administración exige 2FA;
+  Visitante entra sin doble factor. La última opción elegida queda marcada como
+  **opción preferida**. Desde el menú de usuario puede **Cambiar de modo** en cualquier momento.
 
 | Rol | Permisos |
 |---|---|
@@ -114,7 +120,7 @@ adicional.
 
 ## Despliegue en GitHub Pages
 
-**Estado: PUBLICADA y activa** 🌐 (verificación HTTP 200 y pruebas E2E en producción)
+**Estado: PUBLICADA y activa** (verificación HTTP 200 y pruebas E2E en producción)
 
 * **Repositorio:** https://github.com/irvinMartinez2709/control-servicio-social (rama `main`)
 * **Aplicación en vivo:** https://irvinmartinez2709.github.io/control-servicio-social/

@@ -532,39 +532,59 @@
 }
 .faq__item.is-open .faq__a { display: block; animation: viewIn .25s var(--ease); }
 
-/* ------------------------- Selector de modo de ingreso ------------------------- */
-.mode-switch {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  padding: 6px;
-  background: var(--surface-2, var(--surface));
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  margin-bottom: var(--sp-4);
-}
-.mode-switch__btn {
+/* ------------------------- Elección de modo (solo cuentas admin) ------------------------- */
+.mode-choice { display: grid; gap: 10px; margin-bottom: var(--sp-4); }
+.mode-choice__opt {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 0;
-  border-radius: calc(var(--r-md) - 4px);
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-weight: 600;
-  font-size: .88rem;
-  cursor: pointer;
-  transition: background .16s var(--ease), color .16s var(--ease);
-}
-.mode-switch__btn:hover { color: var(--text); }
-.mode-switch__btn.is-active {
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
   background: var(--surface);
-  color: var(--primary);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, .08);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .16s var(--ease), transform .16s var(--ease), box-shadow .16s var(--ease);
 }
+.mode-choice__opt:hover {
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .08);
+}
+.mode-choice__opt.is-preferred {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+}
+.mode-choice__icon {
+  flex: 0 0 42px;
+  width: 42px; height: 42px;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  font-size: 1.05rem;
+}
+.mode-choice__body { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.mode-choice__body strong { font-size: .98rem; }
+.mode-choice__body > span { font-size: .8rem; color: var(--muted); line-height: 1.55; }
+.mode-choice__tag {
+  flex-basis: 100%;
+  margin-left: 56px;
+  justify-self: start;
+  font-style: normal;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+}
+.mode-choice__tag i { margin-right: 4px; }
 
 /* ------------------------- Badge genérico de grupo ------------------------- */
 .badge--group {

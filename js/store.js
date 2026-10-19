@@ -313,6 +313,35 @@
     const key = String(username || "").trim().toLowerCase();
     return state.users.find((u) => String(u.username).toLowerCase() === key) || null;
   }
+  /** Dueño del "usuario de versión visitante" propio de un administrador */
+  function getUserByVisitorUsername(username) {
+    const key = String(username || "").trim().toLowerCase();
+    if (!key) return null;
+    return state.users.find((u) => u.visitorUsername && String(u.visitorUsername).toLowerCase() === key) || null;
+  }
+  /** ¿El nombre ya se usa como usuario principal o como usuario visitante de alguien? */
+  function usernameTaken(username, exceptUserId) {
+    const key = String(username || "").trim().toLowerCase();
+    if (!key) return false;
+    return state.users.some((u) =>
+      u.id !== exceptUserId &&
+      (String(u.username).toLowerCase() === key ||
+        (u.visitorUsername && String(u.visitorUsername).toLowerCase() === key))
+    );
+  }
+  /**
+   * Resuelve un intento de acceso.
+   * @returns {{user: object, flavor: "principal"|"visitante"}|null}
+   *  - "principal": credenciales de administración (o de un visitante normal)
+   *  - "visitante": credenciales de versión visitante de un administrador
+   */
+  function resolveLoginUser(username) {
+    const main = getUserByUsername(username);
+    if (main) return { user: main, flavor: "principal" };
+    const vis = getUserByVisitorUsername(username);
+    if (vis && vis.visitorPasswordHash) return { user: vis, flavor: "visitante" };
+    return null;
+  }
   function getUsersByRole(role) { return state.users.filter((u) => u.role === role); }
 
   function recordsOfUser(userId) {
@@ -573,7 +602,7 @@
     init, loadAll, persist, reset, seedDefaults, pullFromRepo,
     get state() { return state; },
     read, write,
-    getUser, getUserByUsername, getUsersByRole,
+    getUser, getUserByUsername, getUserByVisitorUsername, usernameTaken, resolveLoginUser, getUsersByRole,
     recordsOfUser, approvedOfUser, minutesOfUser, minutesByGroup, groupMinutes,
     pendingCount, statusCounts,
     jornadaOf, ensureJornada, bitacoraOf, photosOfDate,
