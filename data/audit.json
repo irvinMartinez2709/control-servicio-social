@@ -36,6 +36,39 @@
       "type": "sesion",
       "action": "Inició sesión",
       "detail": "@irvin_martinez · modo administración · 2FA PIN"
+    },
+    {
+      "id": "aud_mvfsbiwd_94b49x",
+      "ts": 1792446422125,
+      "actor": "irvin_martinez",
+      "actorName": "irvin_martinez",
+      "role": "superadmin",
+      "mode": "admin",
+      "type": "asistencia",
+      "action": "Creó jornada",
+      "detail": "19 Octubre 2026 · Cuadro 6"
+    },
+    {
+      "id": "aud_mvfsblh1_8hyo4f",
+      "ts": 1792446425461,
+      "actor": "irvin_martinez",
+      "actorName": "irvin_martinez",
+      "role": "superadmin",
+      "mode": "admin",
+      "type": "sistema",
+      "action": "Guardó datos manualmente",
+      "detail": "Persistencia forzada en el navegador"
+    },
+    {
+      "id": "aud_mvfsbmi4_ljeohc",
+      "ts": 1792446426796,
+      "actor": "irvin_martinez",
+      "actorName": "irvin_martinez",
+      "role": "superadmin",
+      "mode": "admin",
+      "type": "sistema",
+      "action": "Guardó datos manualmente",
+      "detail": "Persistencia forzada en el navegador"
     }
   ]
 }
