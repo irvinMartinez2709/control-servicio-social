@@ -80,6 +80,17 @@
       "type": "sistema",
       "action": "Guardó datos manualmente",
       "detail": "Persistencia forzada en el navegador"
+    },
+    {
+      "id": "aud_mvfsfzts_vepi1x",
+      "ts": 1792446630688,
+      "actor": "irvin_martinez",
+      "actorName": "irvin_martinez",
+      "role": "superadmin",
+      "mode": "admin",
+      "type": "sesion",
+      "action": "Cerró sesión",
+      "detail": "@irvin_martinez · modo admin"
     }
   ]
 }
