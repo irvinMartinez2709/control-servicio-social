@@ -4,5 +4,16 @@
     "description": "Jornadas habilitadas mediante la acción “Añadir Asistencia” (fecha + grupo).",
     "version": 1
   },
-  "items": []
+  "items": [
+    {
+      "id": "jor_mvfsbiwb_btkita",
+      "date": "2026-10-19",
+      "group": "cuadro6",
+      "createdAt": 1792446422123,
+      "createdBy": "irvin_martinez",
+      "note": "Clasificación de tapitas",
+      "updatedAt": 1792446422124,
+      "updatedBy": "irvin_martinez"
+    }
+  ]
 }
