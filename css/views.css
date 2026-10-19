@@ -666,7 +666,7 @@
 .cal__title { font-size: .92rem; letter-spacing: .02em; }
 .cal__dow {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
   margin-bottom: 4px;
   text-align: center;
@@ -675,8 +675,8 @@
   text-transform: uppercase;
   color: var(--muted);
 }
-.cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-.cal__cell { aspect-ratio: 1 / 1; }
+.cal__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.cal__cell { aspect-ratio: 1 / 1; min-width: 0; }
 .cal__day {
   position: relative;
   display: flex;
@@ -684,6 +684,7 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
+  padding: 3px 2px;            /* anula el padding por defecto del <button> */
   border: 1px solid transparent;
   border-radius: 10px;
   background: var(--surface);
@@ -698,6 +699,7 @@
 .cal__day.is-today { border-color: color-mix(in srgb, var(--primary) 55%, transparent); }
 .cal__day.is-selected { background: var(--primary); border-color: var(--primary); color: #fff; }
 .cal__day.is-selected .cal__cnt { background: rgba(255, 255, 255, .25); color: #fff; }
+.cal__num { line-height: 1.1; }
 .cal__cnt {
   font-size: .62rem;
   font-weight: 700;
@@ -755,6 +757,8 @@
   .pub-hours__bar { display: none; }        /* en móvil prioriza nombre y horas */
   .pub-hours__row { gap: 8px; padding: 8px 10px; }
   .cal-day__row { gap: 6px; }
+  .cal__day { gap: 1px; padding: 3px 1px; } /* la celda cuadrada del mes en curso */
+  .cal__cnt { font-size: .55rem; padding: 1px 3px; }
   .pub__foot { justify-content: center; text-align: center; }
   .pub__foot .btn { white-space: normal; text-align: center; max-width: 100%; }
   .pub__bar { flex-wrap: wrap; }

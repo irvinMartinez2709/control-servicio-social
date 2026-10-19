@@ -5,7 +5,7 @@
      - Navegaciones y data/*.json: red primero, caché como respaldo.
    ============================================================= */
 
-const CACHE = "control-servicio-social-v6";
+const CACHE = "control-servicio-social-v7";
 
 const PRECACHE = [
   "./",
