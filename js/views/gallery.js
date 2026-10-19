@@ -191,6 +191,26 @@
     });
   }
 
+  /* ------------------------- Editar ------------------------- */
+  async function editPhoto(user, photo) {
+    if (!SS.auth.can(user, "photos:manage")) return;
+    const res = await UI.formModal({
+      title: "Editar evidencia",
+      icon: "fa-pen",
+      submitLabel: "Guardar cambios",
+      fields: [
+        { name: "title", label: "Título", icon: "fa-heading", type: "text", required: true, value: photo.title },
+        { name: "description", label: "Descripción", icon: "fa-align-left", type: "textarea", value: photo.description || "", placeholder: "Sin descripción" }
+      ],
+      onSubmit: (data) => {
+        SS.store.updatePhoto(photo.id, { title: data.title, description: data.description });
+        SS.audit.log("contenido", "Editó evidencia", `${photo.title} → ${data.title}`);
+        UI.toast("Evidencia actualizada", "success");
+      }
+    });
+    if (res) render(U.$("#view"));
+  }
+
   /* ------------------------- Vista ------------------------- */
   function render(root) {
     const user = SS.auth.currentUser();
@@ -274,7 +294,8 @@
               <div class="photo__foot">
                 <button class="btn btn--sm btn--ghost" data-open="${esc(p.id)}"><i class="fa-solid fa-expand"></i> Ver</button>
                 <button class="btn btn--sm btn--ghost" data-dl="${esc(p.id)}"><i class="fa-solid fa-download"></i> Descargar</button>
-                ${canManage ? `<button class="btn btn--sm btn--ghost" data-del="${esc(p.id)}" title="Eliminar"><i class="fa-solid fa-trash"></i></button>` : ""}
+                ${canManage ? `<button class="btn btn--sm btn--ghost" data-edit-photo="${esc(p.id)}" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn btn--sm btn--ghost" data-del="${esc(p.id)}" title="Eliminar"><i class="fa-solid fa-trash"></i></button>` : ""}
               </div>
             </figure>`;
           }).join("")}
@@ -337,6 +358,9 @@
         const ok = SS.store.downloadPhoto(p);
         if (!ok) UI.toast("Esta foto no tiene imagen local: usa photos.json + assets/photos/", "warn");
       });
+    });
+    root.querySelectorAll("[data-edit-photo]").forEach((el) => {
+      el.addEventListener("click", () => { const p = findPhoto(el.dataset.editPhoto); if (p) editPhoto(user, p); });
     });
     root.querySelectorAll("[data-del]").forEach((el) => {
       el.addEventListener("click", () => { const p = findPhoto(el.dataset.del); if (p) removePhoto(user, p); });

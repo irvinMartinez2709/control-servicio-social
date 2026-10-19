@@ -291,11 +291,26 @@
     bindUserMenu();
 
     const btnSave = $("#btn-save");
-    if (btnSave) btnSave.addEventListener("click", () => {
+    if (btnSave) btnSave.addEventListener("click", async () => {
       if (!SS.auth.isAdmin(SS.auth.currentUser())) return;
       SS.store.persist("all");
       SS.audit.log("sistema", "Guardó datos manualmente", "Persistencia forzada en el navegador");
-      UI.toast("Datos guardados", "success", 2200, "Todo queda persistido en este dispositivo");
+      const ghOn = SS.sync && SS.sync.enabled && SS.sync.enabled() && SS.github && SS.github.token();
+      if (ghOn) {
+        // Botón de guardar del administrador: sube los cambios al repo
+        btnSave.setAttribute("aria-disabled", "true");
+        await SS.sync.run();
+        btnSave.removeAttribute("aria-disabled");
+        const ok = SS.sync.isSynced();
+        UI.toast(ok ? "Datos guardados y subidos a GitHub" : "Guardado localmente; la subida falló",
+          ok ? "success" : "warn", 3400,
+          ok ? "Commits creados en data/*.json" : "Revisa el token o los permisos e inténtalo de nuevo");
+      } else {
+        UI.toast("Datos guardados", "success", 2200,
+          SS.sync && SS.sync.enabled && SS.sync.enabled()
+            ? "Sin token de GitHub: solo en este navegador (configúralo en Ajustes)"
+            : "Todo queda persistido en este dispositivo");
+      }
     });
 
     $("#btn-menu").addEventListener("click", () => {

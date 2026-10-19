@@ -148,88 +148,116 @@ creada, cambio, solicitud, subida de fotos y acción de sistema queda registrado
 
 ### Guardado y sincronización
 
-Los datos se **autoguardan** en el navegador en cada cambio y, si hay conexión, se
-**suben al API en línea** (ver *Datos en línea* más abajo), de modo que todos los
-dispositivos cargan y guardan lo mismo. El botón **Guardar** de la barra superior
-(solo administraciones) fuerza la persistencia completa como respaldo adicional.
+Los datos se **autoguardan** en el navegador en cada cambio y, si hay conexión y
+token, se **suben al repositorio** (ver *Datos en línea* más abajo), de modo que
+todos los dispositivos cargan y guardan lo mismo. El botón **Guardar** de la barra
+superior (solo administraciones) fuerza la persistencia completa **y sube los
+cambios a GitHub** como respaldo adicional.
 
 ---
 
-## Datos en línea (MongoDB Atlas + Render)
+## Datos en línea (GitHub como base de datos)
 
-**Estado: listo para configurar** (el código del API y del cliente ya está en el repo;
-falta crear la cuenta de Atlas y desplegar el API en Render — pasos abajo).
-
-Antes cada navegador tenía su propia copia en `LocalStorage`. Ahora:
-
-* **Al abrir la página** (`js/sync.js` → `SS.sync.run()`): primero *baja* los datos del
-  API y los aplica al almacenamiento local; después *sube* la cola pendiente.
-* **Cada cambio local** (crear/editar/borrar) se encola como operaciones `put`/`del`
-  por documento (`ss.outbox.v1`) y se envía al API en ~2.5 s, al recuperar la red, al
-  volver a la pestaña y cada 90 s.
-* **Primera sincronización:** carga inicial = *unión* de lo local con lo remoto
-  (upsert por id): dos dispositivos que se conectan por primera vez se combinan, nada
-  se borra salvo un `del` explícito.
-* **Sin red:** todo sigue funcionando en local y la cola se sube al volver la conexión.
-* **No se sincronizan:** la sesión del dispositivo y la bandera de semilla.
-* La portada pública lee el API primero (`publicData()`); si el API no responde, usa
-  `data/*.json` del repositorio; si no, lo local.
-
-### Arquitectura
+**Estado: activo.** El repositorio es la base de datos de la app: no hace falta
+Firebase, MongoDB ni ningún servidor nuevo. La web se sirve desde GitHub Pages y
+los mismos `data/*.json` del repo son la fuente de verdad:
 
 ```
-PWA (GitHub Pages)  ──GET /api/data──►  API Express (Render)  ──►  MongoDB Atlas M0
-   js/sync.js         ◄──POST /api/sync──   server/index.js           colección "docs"
+PWA (GitHub Pages, js/github.js + js/sync.js)
+   │  lectura: raw.githubusercontent.com (data/*.json, sin token)
+   ▼
+Repositorio (rama main, data/*.json)
+   ▲  escritura: API de Contents con token personal (commit por archivo)
 ```
 
-* `server/index.js`: Express + driver oficial de MongoDB. Sin `MONGODB_URI` corre en
-  **modo memoria** con la semilla de `data/*.json` (eso es lo que usan las pruebas).
-* Tras cada sincronización el API **depura asistencias huérfanas** (una cuenta
-  eliminada no deja registros en línea).
-* `render.yaml` (Blueprint) define el servicio: `control-servicio-social-api`.
-* Lecturas abiertas (los datos de portada son públicos por diseño). Escrituras: si
-  defines la variable de entorno `APP_KEY` en Render, el API exige el encabezado
-  `x-app-key` y hay que poner el **mismo** valor en `js/config.js` (`appKey`).
-  *Nunca* guardes la cadena de MongoDB en el código ni en el repo.
+* **Al abrir la página**: la app *baja* `data/*.json` desde la rama `main` (sin
+  caché) y los aplica al almacenamiento local; todos los dispositivos ven lo que
+  está publicado en el repo.
+* **Al guardar cambios** (crear/editar/borrar usuarios, asistencia, jornadas,
+  bitácoras, fotos, grupos o auditoría): la app los aplica en local y, si el
+  administrador configuró su token, los **sube como commits** (uno por archivo
+  JSON modificado, y solo si el contenido cambió realmente). Hay subida
+  automática (~2.5 s después del cambio, al recuperar la pestaña y cada 90 s) y
+  también el botón **Guardar** y **Ajustes → Datos en línea → Subir cambios
+  ahora** para subir a mano.
+* **Sin token** (o sin red): todo se guarda en el navegador y la app avisa una
+  vez; al configurar el token o volver la red se sube lo pendiente.
+* **Primera sincronización:** carga inicial = *unión* de lo local con lo del
+  repo (upsert por id): nada se pierde ni se borra salvo un borrado explícito.
+* **No se sincronizan:** la sesión del dispositivo, la bandera de semilla ni el
+  tema (preferencias de cada navegador).
+* La portada pública lee primero `data/*.json` del repo (sin token); si falla,
+  usa los JSON servidos por Pages; si no, lo local.
 
-### 1. Crear la base de datos en MongoDB Atlas (gratis, sin tarjeta)
+### Token de GitHub (cada administrador, una sola vez)
 
-1. Entra a https://www.mongodb.com/cloud/atlas/register y crea la cuenta (email o Google).
-2. En **Database → Build a Database** elige **M0 (Free)**, región más cercana
-   (p. ej. `us-east-1`), nombre del cluster: `Cluster0` y **Create**.
-3. En **Security → Database Access → Add New Database User**: usuario y contraseña
-   (guárdalas, no las necesitarás en el código) y permiso **Read and write to any
-   database**. **Add User**.
-4. En **Security → Network Access → Add IP Address**: **Allow Access From Anywhere**
-   (`0.0.0.0/0`) — el API de Render necesita llegar desde internet.
-5. En **Deployment → Database → Connect → Connect your application**: copia la cadena
-   `mongodb+srv://...` (**tal cual, sin comillas**). Esta cadena SOLO vive en Render.
+Los cambios solo se suben a GitHub desde una cuenta autorizada. Cada
+administrador crea **su propio token** (así se puede revocar por persona) y lo
+pega una vez en **Ajustes → Datos en línea (GitHub) → Configurar**; el token se
+guarda **solo en su navegador**, nunca en el código ni en el repo.
 
-### 2. Desplegar el API en Render (gratis)
+1. En GitHub: **Settings → Developer settings → Personal access tokens →
+   Fine-grained tokens → Generate new token**.
+2. *Resource owner*: tu cuenta. En **Repository access** elige **Only select
+   repositories** → `irvinMartinez2709/control-servicio-social`.
+3. En **Permissions → Repository permissions** deja todo en *No access* salvo
+   **Contents: Read and write**.
+4. Elige expiración (90 días es buena práctica) y genera el token; cópialo.
+5. En la app: **Ajustes → Datos en línea (GitHub) → Configurar** → pega el
+   token → **Guardar token**. El estado mostrará `Conectado como @tuusuario`.
+6. Para revocarlo: bórralo en GitHub y en la app vacía el campo y guarda (la
+   app vuelve a modo solo-local con aviso).
 
-1. Entra a https://dashboard.render.com con GitHub.
-2. **New → Blueprint** → conecta el repositorio `irvinMartinez2709/control-servicio-social`.
-   Render detecta el `render.yaml` y crea el servicio **control-servicio-social-api**.
-3. En *Environment* del servicio, pega en **MONGODB_URI** la cadena de Atlas
-   (opcionalmente define **APP_KEY** con un valor secreto tuyo).
-4. **Apply / Deploy**. Espera a que digue *Live*: la URL será
-   `https://control-servicio-social-api.onrender.com` (la que `js/config.js` ya usa).
-5. Comprueba: `https://control-servicio-social-api.onrender.com/api/health` debe
-   responder `{"ok":true,"mode":"mongo"}`.
+> **Advertencia:** quien tenga el token puede modificar este repo; por eso está
+> limitado al permiso *Contents* y a este repositorio, y cada administrador usa
+> el suyo. Si un token se filtra, revócalo de inmediato.
 
-> **Notas:** Render duerme el servicio gratis tras ~15 min sin uso; la primera petición
-> tarda hasta ~50 s (la app lo detecta y usa el respaldo local/repo sin romperse).
-> Tras crear Atlas **vacío**, la primera apertura de la app sube sus datos locales al
-> API (carga inicial) y a partir de ahí todos los dispositivos ven lo mismo.
+### CRUD completo por sección
 
-### 3. Pruebas locales del API
+Toda sección que agrega contenido tiene operaciones completas de crear, leer,
+editar y eliminar (los cambios viajan al repo por la sincronización):
 
-```bash
-cd server && npm install
-node index.js          # puerto 8124, modo memoria con semilla de data/*.json
-```
-La suite E2E apunta a `http://127.0.0.1:8124` (inyectado con `window.__SS_API_BASE__`);
-el humo de producción apunta a un puerto muerto para nunca tocar la API real.
+| Sección | Crear | Leer | Editar | Eliminar |
+|---|---|---|---|---|
+| Usuarios (con 2FA incluido) | sí | sí | sí | sí |
+| Grupos | sí | sí | renombrar | sí |
+| Jornadas | sí | sí | nota de apertura | sí (solo vacías) |
+| Registros de asistencia | sí | sí | corregir / aprobar / rechazar | sí |
+| Bitácoras | sí | sí | redactar / editar | sí |
+| Evidencias (fotos) | sí | sí | título y descripción | sí |
+| Auditoría | registro inmutable por diseño | | | |
+
+Los usuarios (incluido su 2FA: PIN/TOTP) viven en `data/users.json`: una vez
+registrado y validado, cualquier dispositivo que sincronice reconoce la cuenta
+sin volver a pedir el 2FA.
+
+### Notas y límites
+
+* Cada subida es un **commit por archivo** con mensaje
+  `app: coleccion (N registros) · fecha`; el historial del repo documenta cada
+  cambio y un commit vacío nunca se crea.
+* Si dos administradores editan a la vez, gana el último en subir ese archivo
+  (escritura a archivo completo). Editando a ritmo humano normal no debería
+  ocurrir.
+* El bloque `_info` documental de cada JSON del repo **se conserva** en cada
+  subida (la app lo reescribe solo con `items` actualizados).
+* La API de Contents rechaza archivos de más de ~100 MB; con fotos en base64
+  eso es muy difícil de alcanzar, pero si ocurriera la app lo avisa y esos
+  datos quedan en el dispositivo.
+
+### Alternativas no activas (por si algún día se necesitan)
+
+* **API propio (MongoDB Atlas + Render o Vercel):** `server/index.js` (Express +
+  driver de MongoDB) expone `GET /api/data`, `POST /api/sync` y `GET /api/health`
+  con la misma semántica (upsert por id + depuración de huérfanos). Se activa
+  definiendo `apiBase` en `js/config.js`; `render.yaml` (Render) y `api/index.js`
+  (Vercel) ya están listos. Sin `MONGODB_URI` corre en modo memoria (así lo usan
+  las pruebas locales).
+* **Firebase (Firestore):** `js/config.js` tiene el bloque `firebase` con
+  `enabled: false`. Pegando la config pública de una web de Firebase y marcando
+  `enabled: true`, `js/sync.js` usa Firestore (colección `state`, doc
+  `coleccion:id`, lotes de 400) como transporte, descargando el SDK solo bajo
+  demanda.
 
 ---
 
@@ -260,10 +288,11 @@ Para publicar o actualizar una versión:
    `index.html`, `manifest.json`, `sw.js`, `css/`, `js/`, `data/`, `assets/`
    (con `assets/photos/` para las evidencias) y `server/` + `render.yaml` (API en línea).
 
-### Sincronizar datos con el repositorio (respaldo)
+### Publicación manual de datos e imágenes (alternativa)
 
-La fuente principal en línea es el API (sección *Datos en línea*). Estos JSON siguen
-siendo el **respaldo** cuando no hay API (y la fuente de la semilla inicial):
+La app ya lee y escribe `data/*.json` automáticamente (ver *Datos en línea*).
+Este flujo manual queda como alternativa para publicar sin token y para las
+imágenes de `assets/photos/`:
 
 1. **Ajustes → Datos y respaldos → Descargar archivos JSON del repo**
    (genera `users.json`, `attendance.json`, `jornadas.json`, `bitacoras.json`,
@@ -280,9 +309,9 @@ siendo el **respaldo** cuando no hay API (y la fuente de la semilla inicial):
 5. En el navegador, **Ajustes → Sincronizar desde el repositorio** (Líder Supremo)
    recarga `data/*.json`.
 
-> En la primera carga (navegador limpio) la app lee automáticamente los JSON de `data/`.
-> A partir de que modificas datos en local, deja de sobrescribirlos: usa el botón
-> *Sincronizar* para forzar la lectura desde el repositorio.
+> Con el token configurado no hace falta este flujo para los JSON: la app los
+> sube sola como commits. Solo sigue haciendo falta para las imágenes de
+> `assets/photos/`.
 
 ---
 

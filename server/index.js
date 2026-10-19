@@ -192,12 +192,18 @@ app.post("/api/sync", async (req, res) => {
       console.log("[api] Conectado a MongoDB Atlas");
     } catch (e) {
       console.error("[api] No se pudo conectar a MongoDB:", e.message);
-      process.exit(1); // Render reiniciará el servicio
+      if (!process.env.VERCEL) process.exit(1); // Render reiniciará el servicio
     }
   } else {
     memory = loadMemory();
     console.log("[api] Modo memoria (sin MONGODB_URI)", MEMORY_PERSIST ? "+ respaldo .data/db.json" : "");
   }
 
-  app.listen(PORT, () => console.log(`[api] Escuchando en http://127.0.0.1:${PORT}`));
+  // En Vercel (serverless) la app se exporta y NO escucha; en Render/local sí.
+  if (!process.env.VERCEL) {
+    app.listen(PORT, () => console.log(`[api] Escuchando en http://127.0.0.1:${PORT}`));
+  }
 })();
+
+// Salida para serverless (Vercel): el runtime envuelve la app Express exportada.
+module.exports = app;

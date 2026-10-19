@@ -297,6 +297,27 @@
   }
 
   /* ------------------------- Vista ------------------------- */
+  /* ------------------------- Datos en línea (GitHub) ------------------------- */
+  async function ghTokenModal(root) {
+    const res = await UI.formModal({
+      title: "Token de GitHub",
+      icon: "fa-key",
+      submitLabel: "Guardar token",
+      fields: [
+        {
+          name: "token", label: "Token personal (fine-grained)", icon: "fa-shield-halved",
+          type: "password", value: SS.github ? SS.github.token() : "", autocomplete: "off",
+          hint: "GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token. Repositorio: este proyecto. Permisos: Contents (Read and write)."
+        }
+      ],
+      onSubmit: (data) => {
+        SS.github.setToken(data.token);
+        UI.toast(data.token ? "Token guardado en este navegador" : "Token eliminado", data.token ? "success" : "warn");
+      }
+    });
+    if (res) render(root);
+  }
+
   function render(root) {
     const user = SS.auth.currentUser();
     if (!user) return;
@@ -444,6 +465,22 @@
           </div>` : ""}
         </section>
 
+        <!-- DATOS EN LÍNEA (GITHUB) -->
+        <section class="card">
+          <div class="card__head">
+            <span class="card__icon"><i class="fa-brands fa-github"></i></span>
+            <div><h2>Datos en línea (GitHub)</h2><div class="small muted">El repositorio es la base de datos: se lee data/*.json y los cambios se suben como commits</div></div>
+          </div>
+          <div class="setting-line">
+            <div class="setting-line__text"><strong>Token de acceso</strong><span>Token personal de GitHub con permiso Contents: Read and write, limitado a este repositorio. Se guarda solo en este navegador; nunca en el código.</span></div>
+            <button class="btn btn--sm btn--soft" id="btn-gh-token"><i class="fa-solid fa-key"></i> ${SS.github && SS.github.token() ? "Cambiar" : "Configurar"}</button>
+          </div>
+          <div class="setting-line">
+            <div class="setting-line__text"><strong>Subir cambios ahora</strong><span id="gh-status">Comprueba el token y sube los datos pendientes</span></div>
+            <button class="btn btn--sm btn--primary" id="btn-gh-push"><i class="fa-solid fa-cloud-arrow-up"></i> Subir</button>
+          </div>
+        </section>
+
         <!-- AYUDA / ACERCA DE -->
         <section class="card">
           <div class="card__head">
@@ -524,6 +561,35 @@
     root.querySelector("#btn-backup").addEventListener("click", () => { SS.store.downloadFullBackup(); SS.audit.log("sistema", "Exportó respaldo completo", "Backup con imágenes"); UI.toast("Respaldo descargado", "success"); });
     root.querySelector("#btn-repo").addEventListener("click", () => { SS.store.downloadRepoFiles(); SS.audit.log("sistema", "Exportó JSON del repo", "users, attendance, jornadas, bitacoras, groups, audit y photos"); UI.toast("Archivos JSON descargados", "success", 3400, "Sube los archivos a data/ y haz commit"); });
     root.querySelector("#btn-import").addEventListener("click", importBackup);
+
+    // Datos en línea (GitHub)
+    const btnGhToken = root.querySelector("#btn-gh-token");
+    if (btnGhToken) btnGhToken.addEventListener("click", () => ghTokenModal(root));
+    const btnGhPush = root.querySelector("#btn-gh-push");
+    if (btnGhPush) btnGhPush.addEventListener("click", async () => {
+      if (!SS.github.token()) { UI.toast("Configura primero el token de GitHub", "warn", 3400, "Ajustes → Datos en línea (GitHub)"); return; }
+      btnGhPush.setAttribute("aria-disabled", "true");
+      await SS.sync.run();
+      btnGhPush.removeAttribute("aria-disabled");
+      let pending = 0;
+      try { pending = (JSON.parse(localStorage.getItem(SS.sync.OUTBOX_KEY) || "[]")).length; } catch (e) { /* noop */ }
+      const ok = SS.sync.isSynced() && !pending;
+      UI.toast(ok ? "Datos subidos al repositorio" : "Revisa el token o los permisos", ok ? "success" : "error",
+        3400, ok ? "data/*.json actualizado con los últimos cambios" : `${pending} operación(es) pendientes`);
+      render(root);
+      SS.app.refreshChrome();
+    });
+    const ghStatus = root.querySelector("#gh-status");
+    if (ghStatus && SS.github) {
+      if (!SS.github.token()) {
+        ghStatus.textContent = "Sin token: los cambios se guardan solo en este navegador.";
+      } else {
+        ghStatus.textContent = "Token configurado; comprobando…";
+        SS.github.whoAmI().then((login) => {
+          ghStatus.textContent = login ? `Conectado como @${login}.` : "Token configurado (identidad sin verificar).";
+        }).catch(() => { ghStatus.textContent = "Token configurado (identidad sin verificar)."; });
+      }
+    }
 
     const pull = root.querySelector("#btn-pull");
     if (pull) pull.addEventListener("click", async () => {

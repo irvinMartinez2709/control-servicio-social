@@ -32,7 +32,8 @@
       onSubmit: (data) => {
         const exists = SS.store.state.jornadas.some((j) => j.date === data.date && j.group === data.group);
         if (exists) throw new Error("Esa jornada ya existe para ese grupo");
-        SS.store.ensureJornada(data.date, data.group, user);
+        const j = SS.store.ensureJornada(data.date, data.group, user);
+        if (data.note && j) SS.store.updateJornada(j.id, { note: data.note }, user);
         if (data.note) SS.store.saveBitacora(data.date, data.note, user, data.group);
         SS.audit.log("asistencia", "Creó jornada", `${U.fmtDate(data.date)} · ${SS.store.groupName(data.group)}`);
         UI.toast("Jornada creada", "success", 3000, U.fmtDateLong(data.date));
@@ -454,9 +455,55 @@
     });
     root.querySelectorAll("[data-empty-act]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        if (btn.dataset.emptyAct === "direct") directRegister(user);
+        const act = btn.dataset.emptyAct;
+        if (act === "direct") directRegister(user);
+        else if (act === "jor-edit") editJornadaNote(user, btn.dataset.date, btn.dataset.group || null);
+        else if (act === "jor-del") deleteJornada(user, btn.dataset.date, btn.dataset.group || null);
         else requestAttendance(user);
       });
+    });
+  }
+
+  /* ------------------------- Jornadas: editar / eliminar ------------------------- */
+  async function editJornadaNote(user, date, group) {
+    const j = SS.store.jornadaOf(date, group);
+    if (!j || !SS.auth.can(user, "attendance:manage")) return;
+    const res = await UI.formModal({
+      title: "Editar jornada",
+      icon: "fa-calendar-day",
+      submitLabel: "Guardar nota",
+      fields: [
+        {
+          name: "note", label: "Nota de la jornada", icon: "fa-comment-dots", type: "textarea",
+          value: j.note || "", placeholder: "Ej. Jornada de limpieza en el parque central…"
+        }
+      ],
+      onSubmit: (data) => {
+        SS.store.updateJornada(j.id, { note: data.note || "" }, user);
+        SS.audit.log("asistencia", "Editó la nota de la jornada", `${U.fmtDate(j.date)} · ${SS.store.groupName(j.group || group)}`);
+        UI.toast("Jornada actualizada", "success");
+      }
+    });
+    if (res) { render(U.$("#view")); SS.app.refreshChrome(); }
+  }
+
+  function deleteJornada(user, date, group) {
+    const j = SS.store.jornadaOf(date, group);
+    if (!j || !SS.auth.can(user, "attendance:manage")) return;
+    UI.confirm({
+      heading: "Eliminar jornada",
+      title: "¿Eliminar esta jornada?",
+      message: `${U.fmtDate(j.date)} · ${SS.store.groupName(j.group || group)}. Solo se puede eliminar si está vacía (sin registros, bitácoras ni evidencias).`,
+      confirmLabel: "Eliminar",
+      danger: true
+    }).then((ok) => {
+      if (!ok) return;
+      const res = SS.store.removeJornada(j.id);
+      if (res === "used") { UI.toast("La jornada ya tiene contenido: elimina primero sus registros", "error"); return; }
+      SS.audit.log("asistencia", "Eliminó jornada vacía", `${U.fmtDate(j.date)} · ${SS.store.groupName(j.group || group)}`);
+      UI.toast("Jornada eliminada", "warn");
+      render(U.$("#view"));
+      SS.app.refreshChrome();
     });
   }
 
@@ -467,9 +514,13 @@
         <i class="fa-solid fa-calendar-day"></i>
         <strong>Jornada de ${esc(UI.groupLabel(marker.group))} sin registros</strong>
         <p>${isAdmin ? "Registra asistencia directa o espera las solicitudes de los visitantes para esta fecha." : "Aún no hay registros en esta jornada; puedes enviar tu solicitud."}</p>
-        ${isAdmin
-          ? `<button class="btn btn--sm btn--primary" data-empty-act="direct"><i class="fa-solid fa-user-clock"></i> Registro directo</button>`
-          : `<button class="btn btn--sm btn--primary" data-empty-act="request"><i class="fa-solid fa-paper-plane"></i> Registrar mi asistencia</button>`}
+        <div class="gap-row" style="justify-content:center;flex-wrap:wrap">
+          ${isAdmin
+            ? `<button class="btn btn--sm btn--primary" data-empty-act="direct"><i class="fa-solid fa-user-clock"></i> Registro directo</button>
+               <button class="btn btn--sm btn--soft" data-empty-act="jor-edit" data-date="${esc(marker.date)}" data-group="${esc(marker.group || "")}"><i class="fa-solid fa-pen"></i> Nota</button>
+               <button class="btn btn--sm btn--ghost" data-empty-act="jor-del" data-date="${esc(marker.date)}" data-group="${esc(marker.group || "")}" title="Eliminar jornada vacía"><i class="fa-solid fa-trash"></i></button>`
+            : `<button class="btn btn--sm btn--primary" data-empty-act="request"><i class="fa-solid fa-paper-plane"></i> Registrar mi asistencia</button>`}
+        </div>
       </div>`;
   }
 

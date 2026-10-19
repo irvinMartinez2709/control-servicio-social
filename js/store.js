@@ -498,6 +498,38 @@
     return j;
   }
 
+  /** Actualiza una jornada (por ahora su nota de apertura). */
+  function updateJornada(id, patch, user) {
+    loadAll();
+    const j = state.jornadas.find((x) => x.id === id);
+    if (!j) return null;
+    if (patch && typeof patch.note === "string") j.note = patch.note;
+    j.updatedAt = Date.now();
+    j.updatedBy = user ? user.username : "sistema";
+    persist("jornadas");
+    return j;
+  }
+
+  /**
+   * Elimina una jornada. Solo se permite si está vacía (sin registros,
+   * bitácoras ni evidencias de esa fecha y grupo).
+   * @returns {boolean|"used"} true si se eliminó, "used" si tiene contenido
+   */
+  function removeJornada(id) {
+    loadAll();
+    const j = state.jornadas.find((x) => x.id === id);
+    if (!j) return false;
+    const used =
+      state.attendance.some((r) => r.date === j.date && r.group === j.group) ||
+      state.bitacoras.some((b) => b.date === j.date && (b.group || "") === (j.group || "")) ||
+      state.photos.some((p) => p.date === j.date && (p.group || "") === (j.group || ""));
+    if (used) return "used";
+    const before = state.jornadas.length;
+    state.jornadas = state.jornadas.filter((x) => x.id !== id);
+    persist("jornadas");
+    return state.jornadas.length < before;
+  }
+
   function bitacoraOf(date, group) {
     const gid = group || defaultGroupId();
     return state.bitacoras.find((b) => b.date === date && (b.group || defaultGroupId()) === gid) || null;
@@ -709,7 +741,7 @@
     getUser, getUserByUsername, getUserByVisitorUsername, usernameTaken, resolveLoginUser, getUsersByRole,
     recordsOfUser, approvedOfUser, minutesOfUser, minutesByGroup, groupMinutes,
     pendingCount, statusCounts,
-    jornadaOf, ensureJornada, bitacoraOf, photosOfDate,
+    jornadaOf, ensureJornada, updateJornada, removeJornada, bitacoraOf, photosOfDate,
     groupsList, groupById, groupName, groupsOptions, defaultGroupId,
     addGroup, updateGroup, removeGroup, groupUsage,
     addAudit, auditList,

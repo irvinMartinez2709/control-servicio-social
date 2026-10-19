@@ -5,7 +5,7 @@
      - Navegaciones y data/*.json: red primero, caché como respaldo.
    ============================================================= */
 
-const CACHE = "control-servicio-social-v8";
+const CACHE = "control-servicio-social-v10";
 
 const PRECACHE = [
   "./",
@@ -19,6 +19,8 @@ const PRECACHE = [
   "js/util.js",
   "js/crypto.js",
   "js/config.js",
+  "js/firebase.js",
+  "js/github.js",
   "js/store.js",
   "js/sync.js",
   "js/audit.js",
