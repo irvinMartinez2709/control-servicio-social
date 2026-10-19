@@ -14,5 +14,28 @@
       "detail": "detalle legible del evento"
     }
   },
-  "items": []
+  "items": [
+    {
+      "id": "aud_mvfqmuxe_j3nil8",
+      "ts": 1792443591698,
+      "actor": "irvin_martinez",
+      "actorName": "irvin_martinez",
+      "role": "superadmin",
+      "mode": "",
+      "type": "sesion",
+      "action": "Configuró 2FA (PIN)",
+      "detail": "@irvin_martinez"
+    },
+    {
+      "id": "aud_mvfqmuxe_5t6o36",
+      "ts": 1792443591698,
+      "actor": "irvin_martinez",
+      "actorName": "irvin_martinez",
+      "role": "superadmin",
+      "mode": "admin",
+      "type": "sesion",
+      "action": "Inició sesión",
+      "detail": "@irvin_martinez · modo administración · 2FA PIN"
+    }
+  ]
 }
