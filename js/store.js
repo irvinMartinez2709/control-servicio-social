@@ -127,9 +127,30 @@
         write(KEYS.settings, state.settings);
       }
     };
+    const ALL_KEYS = ["users", "attendance", "photos", "bitacoras", "jornadas", "groups", "audit", "settings"];
+    const keys = map[collection] && collection !== "all" ? [collection] : ALL_KEYS;
+
+    // Valor previo (para calcular qué cambió hacia el API en línea)
+    const before = {};
+    keys.forEach((k) => { before[k] = read(KEYS[k], null); });
+
+    // Identificadores estables para la sincronización (docs heredados sin id)
+    keys.forEach((k) => {
+      if (Array.isArray(state[k])) {
+        state[k].forEach((d) => { if (d && !d.id) d.id = SS.util.uid(String(k).slice(0, 3)); });
+      }
+    });
+
     const fn = map[collection] || map.all;
     const ok = fn();
     markDirty();
+
+    // Encola los cambios para subirlos al API en línea (si ya se sincronizó)
+    if (SS.sync && SS.sync.enqueue) {
+      keys.forEach((k) => {
+        if (state[k] !== undefined) SS.sync.enqueue(k, before[k], state[k]);
+      });
+    }
     return ok;
   }
 
@@ -303,17 +324,85 @@
     return pulled;
   }
 
+  /* ------------------------- Sincronización en línea ------------------------- */
+  /**
+   * Aplica en local los datos recibidos del API en línea.
+   * @param {object} payload estado completo del servidor
+   * @param {boolean} union  primera sincronización: unión de local y remoto
+   *                         (en choque de id gana el servidor)
+   * @param {Array} pending  operaciones locales aún no subidas (se aplican encima)
+   * @returns {boolean} si se aplicó algo
+   */
+  function applyRemote(payload, union, pending) {
+    if (!payload || typeof payload !== "object") return false;
+    const pend = Array.isArray(pending) ? pending : [];
+    const ARRAY_KEYS = ["users", "attendance", "photos", "bitacoras", "jornadas", "groups", "audit"];
+
+    ARRAY_KEYS.forEach((coll) => {
+      const srv = payload[coll];
+      if (!Array.isArray(srv)) return; // el servidor no trae esta colección
+      const map = new Map();
+      if (union) {
+        state[coll].forEach((d) => { if (d && d.id) map.set(String(d.id), d); });
+      } else if (srv.length === 0 && state[coll].length > 0) {
+        return; // un servidor vacío no borra lo local (todavía no se ha subido)
+      }
+      srv.forEach((d) => { if (d && d.id) map.set(String(d.id), d); });
+      pend.forEach((op) => {                    // cambios locales aún sin subir
+        if (!op || op.coll !== coll || !op.id) return;
+        if (op.action === "del") map.delete(String(op.id));
+        else if (op.doc) map.set(String(op.id), op.doc);
+      });
+      let arr = Array.from(map.values());
+      if (coll === "audit") arr = arr.slice(-AUDIT_CAP);
+      state[coll] = arr;
+      write(KEYS[coll], arr);
+    });
+
+    if (payload.settings && typeof payload.settings === "object") {
+      const pendSet = pend.find((op) => op && op.coll === "settings");
+      const chosen = pendSet && pendSet.doc ? pendSet.doc : payload.settings;
+      state.settings = Object.assign({}, DEFAULT_SETTINGS, chosen);
+      write(KEYS.settings, state.settings);
+    }
+
+    if (state.users.length) localStorage.setItem(KEYS.seeded, "1");
+    return true;
+  }
+
   /* ------------------------- Inicialización ------------------------- */
   async function init() {
     loadAll();
-    const seeded = localStorage.getItem(KEYS.seeded);
-    if (!seeded || state.users.length === 0) {
-      await seedDefaults();
+
+    // 1) Al abrir la página se cargan los datos del API en línea
+    //    (todos los dispositivos terminan con lo mismo).
+    let apiOk = false;
+    if (SS.sync && SS.sync.run) {
+      try { apiOk = await SS.sync.run(); } catch (e) { apiOk = false; }
+    }
+
+    if (apiOk) {
+      // El API respondió: es la fuente de verdad
+      if (localStorage.getItem(KEYS.seeded) !== "1" || state.users.length === 0) {
+        await seedDefaults(); // API recién creado (vacío): cuenta inicial
+        loadAll();
+      }
+    } else {
+      // Sin API: semilla local + JSON del repositorio (comportamiento previo)
+      const seeded = localStorage.getItem(KEYS.seeded);
+      if (!seeded || state.users.length === 0) {
+        await seedDefaults();
+        loadAll();
+      }
+      await pullFromRepo();
       loadAll();
     }
+
     migrate();
-    await pullFromRepo();
     loadAll();
+
+    // 2) Sube lo local pendiente (p. ej. la semilla recién creada)
+    if (SS.sync && SS.sync.run) SS.sync.run();
     return state;
   }
 
@@ -614,7 +703,7 @@
 
   SS.store = {
     VERSION, KEYS, DEFAULT_SETTINGS, AUDIT_CAP,
-    init, loadAll, persist, reset, seedDefaults, pullFromRepo,
+    init, loadAll, persist, reset, seedDefaults, pullFromRepo, applyRemote,
     get state() { return state; },
     read, write,
     getUser, getUserByUsername, getUserByVisitorUsername, usernameTaken, resolveLoginUser, getUsersByRole,

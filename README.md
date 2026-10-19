@@ -19,7 +19,12 @@ Labor social/
 ├── index.html                  # Esqueleto de la SPA + splash + armazón
 ├── manifest.json               # Manifest PWA (instalable)
 ├── sw.js                       # Service Worker (caché offline)
+├── render.yaml                 # Blueprint de Render (API en línea)
 ├── README.md
+│
+├── server/                     # API en línea (Express + MongoDB Atlas)
+│   ├── index.js                # GET /api/data, POST /api/sync, /api/health
+│   └── package.json            # express, mongodb, cors, dotenv
 │
 ├── css/                        # Estilos modulares (Flat Design)
 │   ├── tokens.css              # Variables: paletas, temas light/dark, radios, sombras
@@ -31,7 +36,9 @@ Labor social/
 ├── js/                         # Scripts estructurados (sin dependencias)
 │   ├── util.js                 # DOM, fechas, formato estricto de tiempo (hrs/mins)
 │   ├── crypto.js               # SHA-256 + sal, Base32, TOTP (RFC 6238), QR
+│   ├── config.js               # URL del API en línea (sin secretos)
 │   ├── store.js                # Almacenamiento, grupos, auditoría, export/import
+│   ├── sync.js                 # Sincronización en línea (bajar/subir, cola outbox)
 │   ├── audit.js                # Registrador central de auditoría
 │   ├── ui.js                   # Tema, splash, toasts, modales, badges
 │   ├── auth.js                 # Login dual, registro, 2FA y matriz de permisos
@@ -139,11 +146,90 @@ creada, cambio, solicitud, subida de fotos y acción de sistema queda registrado
 **usuario, día y hora**, con **búsqueda** y **filtro por tipo de acción**
 (Sesión, Cuentas, Asistencia, Contenido, Grupos, Sistema).
 
-### Guardado
+### Guardado y sincronización
 
-Los datos se **autoguardan** en el navegador en cada cambio. El botón **Guardar** de la
-barra superior (solo administraciones) fuerza la persistencia completa como respaldo
-adicional.
+Los datos se **autoguardan** en el navegador en cada cambio y, si hay conexión, se
+**suben al API en línea** (ver *Datos en línea* más abajo), de modo que todos los
+dispositivos cargan y guardan lo mismo. El botón **Guardar** de la barra superior
+(solo administraciones) fuerza la persistencia completa como respaldo adicional.
+
+---
+
+## Datos en línea (MongoDB Atlas + Render)
+
+**Estado: listo para configurar** (el código del API y del cliente ya está en el repo;
+falta crear la cuenta de Atlas y desplegar el API en Render — pasos abajo).
+
+Antes cada navegador tenía su propia copia en `LocalStorage`. Ahora:
+
+* **Al abrir la página** (`js/sync.js` → `SS.sync.run()`): primero *baja* los datos del
+  API y los aplica al almacenamiento local; después *sube* la cola pendiente.
+* **Cada cambio local** (crear/editar/borrar) se encola como operaciones `put`/`del`
+  por documento (`ss.outbox.v1`) y se envía al API en ~2.5 s, al recuperar la red, al
+  volver a la pestaña y cada 90 s.
+* **Primera sincronización:** carga inicial = *unión* de lo local con lo remoto
+  (upsert por id): dos dispositivos que se conectan por primera vez se combinan, nada
+  se borra salvo un `del` explícito.
+* **Sin red:** todo sigue funcionando en local y la cola se sube al volver la conexión.
+* **No se sincronizan:** la sesión del dispositivo y la bandera de semilla.
+* La portada pública lee el API primero (`publicData()`); si el API no responde, usa
+  `data/*.json` del repositorio; si no, lo local.
+
+### Arquitectura
+
+```
+PWA (GitHub Pages)  ──GET /api/data──►  API Express (Render)  ──►  MongoDB Atlas M0
+   js/sync.js         ◄──POST /api/sync──   server/index.js           colección "docs"
+```
+
+* `server/index.js`: Express + driver oficial de MongoDB. Sin `MONGODB_URI` corre en
+  **modo memoria** con la semilla de `data/*.json` (eso es lo que usan las pruebas).
+* Tras cada sincronización el API **depura asistencias huérfanas** (una cuenta
+  eliminada no deja registros en línea).
+* `render.yaml` (Blueprint) define el servicio: `control-servicio-social-api`.
+* Lecturas abiertas (los datos de portada son públicos por diseño). Escrituras: si
+  defines la variable de entorno `APP_KEY` en Render, el API exige el encabezado
+  `x-app-key` y hay que poner el **mismo** valor en `js/config.js` (`appKey`).
+  *Nunca* guardes la cadena de MongoDB en el código ni en el repo.
+
+### 1. Crear la base de datos en MongoDB Atlas (gratis, sin tarjeta)
+
+1. Entra a https://www.mongodb.com/cloud/atlas/register y crea la cuenta (email o Google).
+2. En **Database → Build a Database** elige **M0 (Free)**, región más cercana
+   (p. ej. `us-east-1`), nombre del cluster: `Cluster0` y **Create**.
+3. En **Security → Database Access → Add New Database User**: usuario y contraseña
+   (guárdalas, no las necesitarás en el código) y permiso **Read and write to any
+   database**. **Add User**.
+4. En **Security → Network Access → Add IP Address**: **Allow Access From Anywhere**
+   (`0.0.0.0/0`) — el API de Render necesita llegar desde internet.
+5. En **Deployment → Database → Connect → Connect your application**: copia la cadena
+   `mongodb+srv://...` (**tal cual, sin comillas**). Esta cadena SOLO vive en Render.
+
+### 2. Desplegar el API en Render (gratis)
+
+1. Entra a https://dashboard.render.com con GitHub.
+2. **New → Blueprint** → conecta el repositorio `irvinMartinez2709/control-servicio-social`.
+   Render detecta el `render.yaml` y crea el servicio **control-servicio-social-api**.
+3. En *Environment* del servicio, pega en **MONGODB_URI** la cadena de Atlas
+   (opcionalmente define **APP_KEY** con un valor secreto tuyo).
+4. **Apply / Deploy**. Espera a que digue *Live*: la URL será
+   `https://control-servicio-social-api.onrender.com` (la que `js/config.js` ya usa).
+5. Comprueba: `https://control-servicio-social-api.onrender.com/api/health` debe
+   responder `{"ok":true,"mode":"mongo"}`.
+
+> **Notas:** Render duerme el servicio gratis tras ~15 min sin uso; la primera petición
+> tarda hasta ~50 s (la app lo detecta y usa el respaldo local/repo sin romperse).
+> Tras crear Atlas **vacío**, la primera apertura de la app sube sus datos locales al
+> API (carga inicial) y a partir de ahí todos los dispositivos ven lo mismo.
+
+### 3. Pruebas locales del API
+
+```bash
+cd server && npm install
+node index.js          # puerto 8124, modo memoria con semilla de data/*.json
+```
+La suite E2E apunta a `http://127.0.0.1:8124` (inyectado con `window.__SS_API_BASE__`);
+el humo de producción apunta a un puerto muerto para nunca tocar la API real.
 
 ---
 
@@ -171,12 +257,13 @@ Para publicar o actualizar una versión:
    *Ajustes → Datos y respaldos → Descargar archivos JSON del repo*.
 
 4. **Estructura del repo**
-   `index.html`, `manifest.json`, `sw.js`, `css/`, `js/`, `data/` y `assets/`
-   (con `assets/photos/` para las evidencias).
+   `index.html`, `manifest.json`, `sw.js`, `css/`, `js/`, `data/`, `assets/`
+   (con `assets/photos/` para las evidencias) y `server/` + `render.yaml` (API en línea).
 
-### Sincronizar datos con el repositorio
+### Sincronizar datos con el repositorio (respaldo)
 
-La aplicación corre sobre `LocalStorage` (capa de ejecución). Para versionar los datos:
+La fuente principal en línea es el API (sección *Datos en línea*). Estos JSON siguen
+siendo el **respaldo** cuando no hay API (y la fuente de la semilla inicial):
 
 1. **Ajustes → Datos y respaldos → Descargar archivos JSON del repo**
    (genera `users.json`, `attendance.json`, `jornadas.json`, `bitacoras.json`,

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: control-servicio-social-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Cadena de conexión de MongoDB Atlas (nunca se guarda en el código):
+      # pégala en el panel de Render -> Environment -> MONGODB_URI
+      - key: MONGODB_URI
+        sync: false
+      # Opcional: clave de aplicación para restringir escrituras.
+      # Si la usas, pon el MISMO valor en js/config.js (appKey).
+      - key: APP_KEY
+        sync: false

@@ -1,0 +1,4 @@
+# Dependencias y respaldos locales del API (nunca se suben)
+server/node_modules/
+server/.data/
+server/.env

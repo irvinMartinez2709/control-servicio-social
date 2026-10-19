@@ -48,20 +48,34 @@
     // Vista inmediata con lo local (hay contenido aunque falle la red).
     buildView(initial.users.slice(), initial.records.slice());
 
-    // Sincronización: todos los dispositivos deben ver lo mismo, así que la
-    // portada se reconstruye con los JSON del repositorio publicados.
-    Promise.all([fetchRepo("data/users.json"), fetchRepo("data/attendance.json")])
-      .then(([repoUsers, repoRecords]) => {
-        if (!root.isConnected || !root.querySelector("#pub")) return;
-        const nextUsers = repoUsers && repoUsers.length ? repoUsers : initial.users;
-        const nextRecords = repoRecords && repoRecords.length ? repoRecords : initial.records;
-        const same =
-          JSON.stringify(nextUsers) === JSON.stringify(initial.users) &&
-          JSON.stringify(nextRecords) === JSON.stringify(initial.records);
-        if (same) return; // ya sincronizado: evita el parpadeo de re-render
-        buildView(nextUsers.slice(), nextRecords.slice());
-      })
-      .catch(() => { /* sin red: se queda la vista local */ });
+    // Sincronización: todos los dispositivos ven lo mismo. Primero el API
+    // en línea (MongoDB); si no responde, los JSON del repositorio; si no, lo local.
+    (async () => {
+      let src = null;
+      if (SS.sync && SS.sync.publicData) {
+        const apiData = await SS.sync.publicData();
+        if (apiData) {
+          src = {
+            users: apiData.users,
+            records: (Array.isArray(apiData.attendance) && apiData.attendance.length)
+              ? apiData.attendance
+              : initial.records
+          };
+        }
+      }
+      if (!src) {
+        const [ru, rr] = await Promise.all([fetchRepo("data/users.json"), fetchRepo("data/attendance.json")]);
+        if (ru || rr) src = { users: ru, records: rr };
+      }
+      if (!src || !root.isConnected || !root.querySelector("#pub")) return;
+      const nextUsers = src.users && src.users.length ? src.users : initial.users;
+      const nextRecords = src.records && src.records.length ? src.records : initial.records;
+      const same =
+        JSON.stringify(nextUsers) === JSON.stringify(initial.users) &&
+        JSON.stringify(nextRecords) === JSON.stringify(initial.records);
+      if (same) return; // ya sincronizado: evita el parpadeo de re-render
+      buildView(nextUsers.slice(), nextRecords.slice());
+    })().catch(() => { /* sin red: se queda la vista local */ });
 
     function buildView(users, records) {
       const goalHours = Number(SS.store.state.settings.hoursGoal) || 60;

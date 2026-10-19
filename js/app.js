@@ -285,6 +285,9 @@
     await SS.store.init();
     UI.theme.init();
 
+    // Sincronización en línea: refrescos al volver a la pestaña / recuperar red
+    if (SS.sync && SS.sync.bindTriggers) SS.sync.bindTriggers();
+
     bindUserMenu();
 
     const btnSave = $("#btn-save");
