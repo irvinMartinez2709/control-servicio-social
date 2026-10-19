@@ -82,15 +82,15 @@
       "detail": "Persistencia forzada en el navegador"
     },
     {
-      "id": "aud_mvfsfzts_vepi1x",
-      "ts": 1792446630688,
+      "id": "aud_mvfsgpml_psszbw",
+      "ts": 1792446664125,
       "actor": "irvin_martinez",
       "actorName": "irvin_martinez",
       "role": "superadmin",
-      "mode": "admin",
+      "mode": "visitante",
       "type": "sesion",
-      "action": "Cerró sesión",
-      "detail": "@irvin_martinez · modo admin"
+      "action": "Inició sesión",
+      "detail": "@irvin_martinez · modo visitante (cuenta de administración)"
     }
   ]
 }
