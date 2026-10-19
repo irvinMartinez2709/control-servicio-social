@@ -114,25 +114,28 @@ adicional.
 
 ## Despliegue en GitHub Pages
 
-1. **Sube el proyecto a GitHub**
+**Estado: PUBLICADA y activa** 🌐 (verificación HTTP 200 y pruebas E2E en producción)
+
+* **Repositorio:** https://github.com/irvinMartinez2709/control-servicio-social (rama `main`)
+* **Aplicación en vivo:** https://irvinmartinez2709.github.io/control-servicio-social/
+
+Para publicar o actualizar una versión:
+
+1. **Sube los cambios**
    ```bash
    cd "Labor social"
-   git init
    git add .
-   git commit -m "Inicio: PWA Control Servicio Social"
-   git branch -M main
-   git remote add origin https://github.com/<TU-USUARIO>/<TU-REPO>.git
-   git push -u origin main
+   git commit -m "Descripción del cambio"
+   git push
    ```
 
-2. **Activa GitHub Pages**
-   *Repo → Settings → Pages → Build and deployment → Source: **Deploy from a branch**
-   → Branch: **main** / carpeta **/ (root)** → Save.*
+2. **GitHub Pages** ya está configurado (*Repo → Settings → Pages → Source: Deploy from
+   a branch → **main** / **/** root*). El push dispara el despliegue automático.
 
-3. **Abre la aplicación**
-   `https://<TU-USUARIO>.github.io/<TU-REPO>/`
+3. **Actualiza los datos versionados** subiendo a `data/` los JSON exportados desde
+   *Ajustes → Datos y respaldos → Descargar archivos JSON del repo*.
 
-4. **Estructura de carpetas recomendada en el repo**
+4. **Estructura del repo**
    `index.html`, `manifest.json`, `sw.js`, `css/`, `js/`, `data/` y `assets/`
    (con `assets/photos/` para las evidencias).
 
