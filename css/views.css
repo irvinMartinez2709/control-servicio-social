@@ -629,8 +629,14 @@
   align-items: start;
   margin-bottom: var(--sp-4);
 }
-.pub__card { padding: clamp(14px, 2vw, 20px); }
+.pub__card { padding: clamp(14px, 2vw, 20px); min-width: 0; }
 .pub__card .card__head { margin-bottom: var(--sp-3); }
+
+/* Contenido ancho: se desliza con el dedo como un carrusel, sin barra visible */
+.pub .pub-hours,
+.pub .rec-list { overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+.pub .pub-hours::-webkit-scrollbar,
+.pub .rec-list::-webkit-scrollbar { display: none; }
 
 /* Horas por persona */
 .pub-hours { display: grid; gap: 10px; }
@@ -749,6 +755,9 @@
   .pub-hours__bar { display: none; }        /* en móvil prioriza nombre y horas */
   .pub-hours__row { gap: 8px; padding: 8px 10px; }
   .cal-day__row { gap: 6px; }
+  .pub__foot { justify-content: center; text-align: center; }
+  .pub__foot .btn { white-space: normal; text-align: center; max-width: 100%; }
+  .pub__bar { flex-wrap: wrap; }
 }
 
 /* ------------------------- Badge genérico de grupo ------------------------- */

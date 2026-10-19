@@ -12,6 +12,8 @@ html, body {
 
 html {
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;      /* Android: el navegador no debe inflar el texto */
+  background: var(--bg);        /* el área alrededor de la página nunca queda blanca */
   scroll-behavior: smooth;
 }
 

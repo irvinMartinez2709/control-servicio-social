@@ -2,6 +2,10 @@
    views/public.js — Portada pública (sin sesión)
    Resumen con las horas totales de cada persona, todas las
    asistencias y un calendario mensual navegable.
+
+   Los datos se sirven desde los JSON publicados del repositorio
+   (data/*.json) para que TODOS los dispositivos vean exactamente
+   lo mismo; si no hay red se usa la copia local como respaldo.
    ============================================================= */
 (function () {
   "use strict";
@@ -22,34 +26,72 @@
     return r.displayName || (u && u.displayName) || r.username || (u && u.username) || "Usuario";
   }
 
+  /* JSON publicado del repositorio (null si no hay red o no existe). */
+  function fetchRepo(path) {
+    return fetch(path, { cache: "no-cache" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (Array.isArray(json)) return json;
+        if (json && Array.isArray(json.items)) return json.items;
+        return null;
+      });
+  }
+
   SS.views["resumen-publico"] = function renderPublic(root) {
     SS.store.loadAll();
 
-    const users = SS.store.state.users.slice();
-    const records = SS.store.state.attendance.slice();
-    const goalHours = Number(SS.store.state.settings.hoursGoal) || 60;
-    const goalMin = goalHours * 60;
-    const authed = SS.auth.isAuthed();
+    const initial = {
+      users: SS.store.state.users.slice(),
+      records: SS.store.state.attendance.slice()
+    };
 
-    const approved = records.filter((r) => r.status === "aprobado");
-    const pending = records.filter((r) => r.status === "pendiente").length;
-    const totalMin = approved.reduce((s, r) => s + (Number(r.minutes) || 0), 0);
+    // Vista inmediata con lo local (hay contenido aunque falle la red).
+    buildView(initial.users.slice(), initial.records.slice());
 
-    const people = users
-      .map((u) => ({ u, min: SS.store.minutesOfUser(u.id) }))
-      .sort((a, b) => b.min - a.min || a.u.displayName.localeCompare(b.u.displayName));
+    // Sincronización: todos los dispositivos deben ver lo mismo, así que la
+    // portada se reconstruye con los JSON del repositorio publicados.
+    Promise.all([fetchRepo("data/users.json"), fetchRepo("data/attendance.json")])
+      .then(([repoUsers, repoRecords]) => {
+        if (!root.isConnected || !root.querySelector("#pub")) return;
+        const nextUsers = repoUsers && repoUsers.length ? repoUsers : initial.users;
+        const nextRecords = repoRecords && repoRecords.length ? repoRecords : initial.records;
+        const same =
+          JSON.stringify(nextUsers) === JSON.stringify(initial.users) &&
+          JSON.stringify(nextRecords) === JSON.stringify(initial.records);
+        if (same) return; // ya sincronizado: evita el parpadeo de re-render
+        buildView(nextUsers.slice(), nextRecords.slice());
+      })
+      .catch(() => { /* sin red: se queda la vista local */ });
 
-    records.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : (b.createdAt || 0) - (a.createdAt || 0)));
+    function buildView(users, records) {
+      const goalHours = Number(SS.store.state.settings.hoursGoal) || 60;
+      const goalMin = goalHours * 60;
+      const authed = SS.auth.isAuthed();
 
-    const byDate = Object.create(null);
-    records.forEach((r) => { (byDate[r.date] = byDate[r.date] || []).push(r); });
+      const approved = records.filter((r) => r.status === "aprobado");
+      const pending = records.filter((r) => r.status === "pendiente").length;
+      const totalMin = approved.reduce((s, r) => s + (Number(r.minutes) || 0), 0);
 
-    const today = U.todayISO();
-    let selDate = today;
-    let calY = Number(today.slice(0, 4));
-    let calM = Number(today.slice(5, 7)) - 1;
+      // Horas por persona calculadas sobre los mismos registros mostrados.
+      const minByUser = Object.create(null);
+      approved.forEach((r) => {
+        minByUser[r.userId] = (minByUser[r.userId] || 0) + (Number(r.minutes) || 0);
+      });
+      const people = users
+        .map((u) => ({ u, min: minByUser[u.id] || 0 }))
+        .sort((a, b) => b.min - a.min || a.u.displayName.localeCompare(b.u.displayName));
 
-    root.innerHTML = `
+      records.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : (b.createdAt || 0) - (a.createdAt || 0)));
+
+      const byDate = Object.create(null);
+      records.forEach((r) => { (byDate[r.date] = byDate[r.date] || []).push(r); });
+
+      const today = U.todayISO();
+      let selDate = today;
+      let calY = Number(today.slice(0, 4));
+      let calM = Number(today.slice(5, 7)) - 1;
+
+      root.innerHTML = `
       <div class="pub" id="pub">
         <header class="pub__bar">
           <img class="pub__logo" src="assets/logo.png" alt="Logo">
@@ -178,11 +220,11 @@
         </footer>
       </div>`;
 
-    /* ------------------------- Calendario ------------------------- */
-    function renderDay() {
-      const day = root.querySelector("#cal-day");
-      const list = byDate[selDate] || [];
-      day.innerHTML = `
+      /* ------------------------- Calendario ------------------------- */
+      function renderDay() {
+        const day = root.querySelector("#cal-day");
+        const list = byDate[selDate] || [];
+        day.innerHTML = `
         <div class="cal-day__head"><i class="fa-solid fa-calendar-check"></i> <strong>${U.fmtDateLong(selDate)}</strong></div>
         ${list.length ? list.map((r) => `
           <div class="cal-day__row">
@@ -195,47 +237,48 @@
             ${UI.statusBadge(r.status)}
           </div>`).join("")
             : UI.emptyState("fa-calendar-xmark", "Sin asistencias este día", "Elige otro día del calendario.")}`;
-    }
-
-    function renderCal() {
-      root.querySelector("#cal-title").textContent = `${MONTHS[calM]} ${calY}`;
-      const first = new Date(calY, calM, 1);
-      const offset = (first.getDay() + 6) % 7; // la semana empieza en lunes
-      const days = new Date(calY, calM + 1, 0).getDate();
-      let cells = "";
-      for (let i = 0; i < offset; i++) cells += `<span class="cal__cell cal__cell--empty"></span>`;
-      for (let d = 1; d <= days; d++) {
-        const iso = `${calY}-${String(calM + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-        const n = (byDate[iso] || []).length;
-        cells += `<button type="button" class="cal__cell cal__day${n ? " has-rec" : ""}${iso === today ? " is-today" : ""}${iso === selDate ? " is-selected" : ""}" data-date="${iso}">
-          <span class="cal__num">${d}</span>${n ? `<span class="cal__cnt">${n}</span>` : ""}
-        </button>`;
       }
-      const grid = root.querySelector("#cal-grid");
-      grid.innerHTML = cells;
-      grid.querySelectorAll(".cal__day").forEach((btn) => {
-        btn.addEventListener("click", () => { selDate = btn.dataset.date; renderCal(); });
-      });
-      renderDay();
-    }
 
-    function moveMonth(delta) {
-      calM += delta;
-      if (calM < 0) { calM = 11; calY--; }
-      if (calM > 11) { calM = 0; calY++; }
+      function renderCal() {
+        root.querySelector("#cal-title").textContent = `${MONTHS[calM]} ${calY}`;
+        const first = new Date(calY, calM, 1);
+        const offset = (first.getDay() + 6) % 7; // la semana empieza en lunes
+        const days = new Date(calY, calM + 1, 0).getDate();
+        let cells = "";
+        for (let i = 0; i < offset; i++) cells += `<span class="cal__cell cal__cell--empty"></span>`;
+        for (let d = 1; d <= days; d++) {
+          const iso = `${calY}-${String(calM + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+          const n = (byDate[iso] || []).length;
+          cells += `<button type="button" class="cal__cell cal__day${n ? " has-rec" : ""}${iso === today ? " is-today" : ""}${iso === selDate ? " is-selected" : ""}" data-date="${iso}">
+            <span class="cal__num">${d}</span>${n ? `<span class="cal__cnt">${n}</span>` : ""}
+          </button>`;
+        }
+        const grid = root.querySelector("#cal-grid");
+        grid.innerHTML = cells;
+        grid.querySelectorAll(".cal__day").forEach((btn) => {
+          btn.addEventListener("click", () => { selDate = btn.dataset.date; renderCal(); });
+        });
+        renderDay();
+      }
+
+      function moveMonth(delta) {
+        calM += delta;
+        if (calM < 0) { calM = 11; calY--; }
+        if (calM > 11) { calM = 0; calY++; }
+        renderCal();
+      }
+
+      root.querySelector("#cal-prev").addEventListener("click", () => moveMonth(-1));
+      root.querySelector("#cal-next").addEventListener("click", () => moveMonth(1));
+
+      root.querySelector("#pub-theme").addEventListener("click", () => {
+        const next = UI.theme.current === "dark" ? "light" : "dark";
+        UI.theme.apply(next);
+        SS.store.setSettings({ theme: next });
+        root.querySelector("#pub-theme").innerHTML = `<i class="fa-solid ${next === "dark" ? "fa-sun" : "fa-moon"}"></i>`;
+      });
+
       renderCal();
     }
-
-    root.querySelector("#cal-prev").addEventListener("click", () => moveMonth(-1));
-    root.querySelector("#cal-next").addEventListener("click", () => moveMonth(1));
-
-    root.querySelector("#pub-theme").addEventListener("click", () => {
-      const next = UI.theme.current === "dark" ? "light" : "dark";
-      UI.theme.apply(next);
-      SS.store.setSettings({ theme: next });
-      root.querySelector("#pub-theme").innerHTML = `<i class="fa-solid ${next === "dark" ? "fa-sun" : "fa-moon"}"></i>`;
-    });
-
-    renderCal();
   };
 })();

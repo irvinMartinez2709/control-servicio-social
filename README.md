@@ -89,7 +89,12 @@ cualquiera consulte la información sin iniciar sesión.
   un día se despliega el detalle (persona, horario, horas y estado).
 - **Todas las asistencias** en una lista completa (fecha, persona, grupo, llegada/salida,
   horas, estado y detalle).
+- **Datos sincronizados con el repositorio**: la portada se reconstruye con los JSON
+  publicados (`data/users.json` y `data/attendance.json`), de modo que **todos los
+  dispositivos ven exactamente lo mismo**; sin red se usa la copia local como respaldo.
 - Botón **Iniciar sesión** (o *Mi panel* si ya hay sesión) y conmutador de tema claro/oscuro.
+- **100 % responsive**: en móvil el texto no se infla (sin zoom out), las secciones anchas
+  se deslizan con el dedo sin barra visible y el pie se centra sin desbordes.
 
 Registrar asistencias sigue exigiendo sesión: desde el login puedes volver al resumen con
 el enlace *"Ver el resumen público sin iniciar sesión"*.
